@@ -3,29 +3,8 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('node:fs');
 const mongoose = require('mongoose');
 
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "TicketViewerId": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
-
-const LevelSchema = new mongoose.Schema({
-    GuildId: String,
-    userId: String,
-    level: Number,
-    Experience: Number
-});
-
-const Level = mongoose.models.Level || mongoose.model('Level', LevelSchema);
+const Configuration = mongoose.models.Configuration;
+const Level = mongoose.models.Level;
 
 module.exports = {
     data: new SlashCommandBuilder()

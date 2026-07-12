@@ -7,31 +7,8 @@ const { Channel } = require('node:diagnostics_channel');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "TicketViewerId": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
-
-const backupSchema = new mongoose.Schema({
-    GuildId: String,
-    timestamp: Number,
-    channels: Array,
-    roles: Array,
-    configuration: Object,
-    automatic: Boolean
-});
-
-const Backup = mongoose.models.backup || mongoose.model('backup', backupSchema);
+const Configuration = mongoose.models.Configuration;
+const Backup = mongoose.models.backup;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -77,17 +54,6 @@ module.exports = {
         }
 
         const ConfigurationData = await Configuration.findOne({ GuildId: interaction.guild.id });
-
-        if (!ConfigurationData) {
-            const embed = new EmbedBuilder()
-                .setTitle('❌ Oops | Configuration Missing')
-                .setDescription("The configuration for this guild hasn't been made! Please contact an administrator for more information.")
-                .setColor('Red')
-                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
-                .setTimestamp();
-            await interaction.editReply({ embeds: [embed] });
-            return;
-        }
 
         if (interaction.options.getSubcommand() === "create") {
 
@@ -166,7 +132,7 @@ module.exports = {
 
             const ManualBackups = await Backup.find({ automatic: false, GuildId: interaction.guild.id })
 
-            if (ManualBackups.length >= 6) {
+            if (ManualBackups.length >= 5) {
                 const embed = new EmbedBuilder()
                     .setTitle('❌ Oops | Backup Limit')
                     .setDescription("You've reached the maximum amount of manual backups, please delete backups before trying again!")
@@ -250,7 +216,8 @@ module.exports = {
             
                 // Send initial progress message
                 await interaction.editReply({
-                    content: "🔄 Applying backup... This may take a few moments."
+                    content: "🔄 Applying backup... This may take a few moments.",
+                    components: []
                 });
             
                 const categoryMap = new Map();

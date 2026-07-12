@@ -5,19 +5,7 @@ const path = require('node:path');
 
 const mongoose = require('mongoose');
 
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
+const Configuration = mongoose.models.Configuration;
 
 
 module.exports = {

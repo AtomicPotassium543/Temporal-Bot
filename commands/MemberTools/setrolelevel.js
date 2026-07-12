@@ -4,29 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const mongoose = require('mongoose');
 
-
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "TicketViewerId": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
-
-const RoleLevelSchema = new mongoose.Schema({
-    GuildId: String,
-    roleId: String,
-    level: Number
-});
-
-const RoleLevel = mongoose.models.RoleLevel || mongoose.model('RoleLevel', RoleLevelSchema);
+const Configuration = mongoose.models.Configuration;
+const RoleLevel = mongoose.models.RoleLevel;
+const Level = mongoose.models.Level;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -73,8 +53,6 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        await mongoose.connect(process.env.MONGODB_URI);
-
         await RoleLevel.findOneAndUpdate(
             { GuildId: interaction.guild.id, roleId: role.id },
             { $set: { level: level }, $setOnInsert: { GuildId: interaction.guild.id, roleId: role.id } },
@@ -88,7 +66,7 @@ module.exports = {
         );
         
         for (const member of membersWithRole.values()) {
-            await mongoose.model('Level').findOneAndUpdate(
+            await Level.findOneAndUpdate(
                 { GuildId: interaction.guild.id, userId: member.id },
                 { $set: { level: level }, $setOnInsert: { GuildId: interaction.guild.id, userId: member.id, Experience: 0 } },
                 { upsert: true, new: true }

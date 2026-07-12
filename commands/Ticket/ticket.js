@@ -5,41 +5,9 @@ const path = require('node:path');
 const mongoose = require('mongoose');
 const { error } = require('node:console');
 
-
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "TicketViewerId": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
-
-const TicketConfigurationSchema = new mongoose.Schema({
-    GuildId: String,
-    name: String,
-    reason: String,
-    TicketCategoryId: String,
-    TicketChannelId: String,
-    TicketMessageId: String
-});
-
-const TicketConfiguration = mongoose.models.TicketConfiguration || mongoose.model('TicketConfiguration', TicketConfigurationSchema);
-
-const TicketSchema = new mongoose.Schema({
-    GuildId: String,
-    userId: String,
-    ticketId: String,
-    messages: String
-});
-
-const Ticket = mongoose.models.Ticket || mongoose.model('Ticket', TicketSchema);
+const Configuration = mongoose.models.Configuration;
+const TicketConfiguration = mongoose.models.TicketConfiguration;
+const Ticket = mongoose.models.Ticket;
 
 module.exports = {
     data: new SlashCommandBuilder()

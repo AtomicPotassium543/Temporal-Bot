@@ -5,21 +5,7 @@ const path = require('node:path');
 const mongoose = require('mongoose');
 const { error } = require('node:console');
 
-
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "TicketViewerId": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
+const Configuration = mongoose.models.Configuration;
 
 module.exports = {
     
@@ -32,8 +18,9 @@ module.exports = {
      * @param { Object } CommandOptions 
      * @param { Object } SelectOptions 
      * @param { Object } ModalOptions 
+     * @param { Object } FileAttachments 
      */
-    Log: async function (client, guildId, CommandName, CommandUser, CommandOptions, SelectOptions, ModalOptions) {
+    Log: async function (client, guildId, CommandName, CommandUser, CommandOptions, SelectOptions, ModalOptions, FileAttachments) {
         
         const config = await Configuration.findOne({ GuildId: guildId });
 
@@ -58,15 +45,14 @@ module.exports = {
                 { name: 'Executed By', value: userMention(CommandUser.id), inline: true },
                 { name: 'Options', value: JSON.stringify(CommandOptions, null, 2) || 'None', inline: false },
                 { name: 'Select Options', value: JSON.stringify(SelectOptions, null, 2) || 'None', inline: false },
-                { name: 'Modal Options', value: JSON.stringify(ModalOptions, null, 2) || 'None', inline: false }
+                { name: 'Modal Options', value: JSON.stringify(ModalOptions, null, 2) || 'None', inline: false },
             )
             .setTimestamp();
 
         try {
-            await logsChannel.send({ embeds: [embed] });
+            await logsChannel.send({ embeds: [embed], files: FileAttachments || [] });
         } catch (error) {
             console.error(`Error sending log message for guild: ${guildId}`, error);
         }
-
     }
 }

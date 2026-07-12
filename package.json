@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "async-task": "^0.4.2",
     "axios": "^1.18.1",
     "discord-antiraid": "^3.1.3",
     "discord.js": "^14.26.4",
     "dotenv": "^17.4.2",
-    "mongoose": "^9.6.3"
+    "mongoose": "^9.6.3",
+    "node-cron": "^4.6.0"
   },
   "compilerOptions": {
     "target": "ES6",

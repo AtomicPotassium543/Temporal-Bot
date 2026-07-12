@@ -4,28 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const mongoose = require('mongoose');
-const ConfigurationSchema = new mongoose.Schema({
-    "GuildId": String,
-    "StaffRoleID": String,
-    "TicketViewerId": String,
-    "InfectedRoleID": String,
-    "AfkRoleID": String,
-    "LogsChannelID": String,
-    "LevelsChannelID": String,
-    "CakeGiftMessage": String,
-    "BackupCreateInterval": Number,
-    "BackupDeleteInterval": Number
-});
-
-const Configuration = mongoose.models.Configuration || mongoose.model('Configuration', ConfigurationSchema);
-
-const CharacterSchema = new mongoose.Schema({
-    GuildId: String,
-    name: String,
-    information: String
-});
-
-const Character = mongoose.models.Character || mongoose.model('Character', CharacterSchema);
+const Configuration = mongoose.models.Configuration;
+const Character = mongoose.models.Character;
 
 module.exports = {
     data: new SlashCommandBuilder()
