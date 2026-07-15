@@ -45,7 +45,7 @@ async function startBot() {
 
     try {
 
-        const systemPath = path.join(__dirname, "systems", file);
+        const systemPath = path.join(__dirname, "systems");
 
         let systemFiles = fs.readdirSync(systemPath)
             .filter(file => file.endsWith(".js"));
@@ -54,7 +54,6 @@ async function startBot() {
         const [element] = systemFiles.splice(db_index, 1)
         
         systemFiles.unshift(element)
-
 
         // Initialize systems
         for (const file of systemFiles) {
@@ -76,7 +75,7 @@ async function startBot() {
             }
         }
 
-        const eventPath = path.join(__dirname, "events", file);
+        const eventPath = path.join(__dirname, "events");
 
         const eventFiles = fs.readdirSync(systemPath)
             .filter(file => file.endsWith(".js"));
