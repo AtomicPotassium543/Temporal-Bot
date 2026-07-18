@@ -10,10 +10,6 @@ const dotenv = require('dotenv');
 
 dotenv.config()
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB connected'))
-    .catch(console.error);
-
 const TOKEN = process.env.TOKEN
 const GUILD_ID = process.env.GUILD_ID
 const CLIENT_ID = process.env.CLIENT_ID
@@ -45,7 +41,7 @@ async function startBot() {
 
     try {
 
-        const systemPath = path.join(__dirname, "systems", file);
+        const systemPath = path.join(__dirname, "systems");
 
         let systemFiles = fs.readdirSync(systemPath)
             .filter(file => file.endsWith(".js"));
@@ -54,7 +50,6 @@ async function startBot() {
         const [element] = systemFiles.splice(db_index, 1)
         
         systemFiles.unshift(element)
-
 
         // Initialize systems
         for (const file of systemFiles) {
@@ -76,7 +71,7 @@ async function startBot() {
             }
         }
 
-        const eventPath = path.join(__dirname, "events", file);
+        const eventPath = path.join(__dirname, "events", "waw");
 
         const eventFiles = fs.readdirSync(systemPath)
             .filter(file => file.endsWith(".js"));
