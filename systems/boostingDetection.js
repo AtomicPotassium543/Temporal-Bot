@@ -19,11 +19,11 @@ module.exports = {
 
                 const ConfigurationData = await Configuration.findOne({ GuildId: newMember.guildId });
 
-                if (!ConfigurationData || !Configuration.BoosterChannelID) {
+                if (!ConfigurationData || !ConfigurationData.BoosterChannelID) {
                     return
                 }
 
-                const BoostChannel = await newMember.client.channels.fetch(Configuration.BoosterChannelID);
+                const BoostChannel = await newMember.client.channels.fetch(ConfigurationData.BoosterChannelID);
 
                 const embed = new EmbedBuilder()
                     .setTitle("🎉 Yahoo! | Boost Detected!")
