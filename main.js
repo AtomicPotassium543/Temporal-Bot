@@ -71,26 +71,27 @@ async function startBot() {
             }
         }
 
-        const eventPath = path.join(__dirname, "events", file);
+        const eventPath = path.join(__dirname, "events");
 
-        const eventFiles = fs.readdirSync(systemPath)
+        const eventFiles = fs.readdirSync(eventPath)
             .filter(file => file.endsWith(".js"));
 
-        // Initialize systems
+        // Initialize events
         for (const file of eventFiles) {
+
             const filePath = path.join(eventPath, file);
 
             try {
-                const system = require(filePath);
+                const events = require(filePath);
 
-                if (!system.initialize) {
+                if (!events.initialize) {
                     console.warn(`Skipping invalid system: ${file}`);
                     continue;
                 }
 
-                await system.initialize(client);
+                await events.initialize(client);
 
-                console.log(`Initialized system: ${filePath}`);
+                console.log(`Initialized events: ${filePath}`);
             } catch (err) {
                 console.error(`Failed to initialize ${filePath}:`, err);
             }

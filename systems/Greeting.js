@@ -8,7 +8,7 @@ module.exports = {
     /**
      * @param {client} Client - The Discord client instance.  
      * @returns {Promise<void>}
-     * @throws {Error} If there is an error connecting to the database.
+     * @throws {Error}
      */
 
     initialize: async function (client) {

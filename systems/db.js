@@ -2,8 +2,6 @@ const { Client } = require('discord.js');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-dotenv.config();
-
 module.exports = {
     /**
      * @param {client} Client - The Discord client instance.  
@@ -13,7 +11,7 @@ module.exports = {
 
     initialize: async function (client) {
         try {
-            await mongoose.connect(process.env.MONGO_URI);
+            await mongoose.connect(process.env.MONGODB_URI);
             
             mongoose.model('Configuration', new mongoose.Schema({
                 GuildId: String,
@@ -26,7 +24,8 @@ module.exports = {
                 CakeGiftMessage: String,
                 BackupCreateInterval: Number,
                 BackupDeleteInterval: Number,
-                BlacklistedWords: String
+                BlacklistedWords: String,
+                BoosterChannelID: String
             }));
             
             mongoose.model('backup', new mongoose.Schema({

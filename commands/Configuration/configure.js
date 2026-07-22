@@ -6,7 +6,8 @@ const path = require('node:path');
 
 const mongoose = require('mongoose');
 
-const Configuration = mongoose.model('Configuration', ConfigurationSchema);
+const Configuration = mongoose.models.Configuration;
+const ConfigurationSchema = mongoose.models.Configuration.schema;
 
 module.exports = {
     data: new SlashCommandBuilder()
