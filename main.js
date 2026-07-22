@@ -10,10 +10,6 @@ const dotenv = require('dotenv');
 
 dotenv.config()
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB connected'))
-    .catch(console.error);
-
 const TOKEN = process.env.TOKEN
 const GUILD_ID = process.env.GUILD_ID
 const CLIENT_ID = process.env.CLIENT_ID
@@ -75,7 +71,7 @@ async function startBot() {
             }
         }
 
-        const eventPath = path.join(__dirname, "events");
+        const eventPath = path.join(__dirname, "events", file);
 
         const eventFiles = fs.readdirSync(systemPath)
             .filter(file => file.endsWith(".js"));

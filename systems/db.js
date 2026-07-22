@@ -25,7 +25,8 @@ module.exports = {
                 LevelsChannelID: String,
                 CakeGiftMessage: String,
                 BackupCreateInterval: Number,
-                BackupDeleteInterval: Number
+                BackupDeleteInterval: Number,
+                BlacklistedWords: String
             }));
             
             mongoose.model('backup', new mongoose.Schema({
