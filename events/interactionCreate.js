@@ -92,7 +92,6 @@ module.exports = {
                             ephemeral: true
                         }).catch();
                     }
-        
                 }
             } catch (error) {
                 console.log(error)

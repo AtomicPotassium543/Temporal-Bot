@@ -15,11 +15,11 @@ module.exports = {
         }
 
         // TODO: Split blacklist into a list. ("a b c d" -> ['a", "b", "c", "d"])
-        const blacklist = Configuration.blacklist || []
+        const blacklist = Configuration.blacklist.split(" ") || []
 
         client.on(Events.MessageCreate, (message) => {
             for (const word of blacklist) {
-                if (message.content.has(word)) {
+                if (message.content.includes(word)) {
                     await message.delete({ reason: "Contains blacklisted word." })
                 }
             }
@@ -27,7 +27,7 @@ module.exports = {
 
         client.on(Events.MessageUpdate, (_, message) => {
             for (const word of blacklist) {
-                if (message.content.has(word)) {
+                if (message.content.includes(word)) {
                     await message.delete({ reason: "Contains blacklisted word." })
                 }
             }
