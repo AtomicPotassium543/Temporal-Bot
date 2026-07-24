@@ -79,16 +79,18 @@ module.exports = {
 
                 // Checking if the user has surpassed a certain level requirement for a role.
 
-                const LevelRole = await RoleLevel.find({
+                const LevelRoles = await RoleLevel.find({
                     GuildId: message.guild.id,
-                    level: {"$gte": data.level}
-                }).sort({ fieldName: -1 }).limit(1)
+                    level: {"$lte": data.level}
+                }).sort({ fieldName: -1 })
 
-                if (LevelRole) {
-                    const role = await message.guild.roles.fetch(LevelRole.roleId);
-                    const member = await user.guild.members.cache.fetch(user.id)
+                for (const LevelRole of LevelRoles) {
+                    if (LevelRole) {
+                        const role = await message.guild.roles.fetch(LevelRole.roleId);
+                        const member = await user.guild.members.cache.fetch(user.id)
 
-                    await member.roles.add(role)
+                        await member.roles.add(role)
+                    }
                 }
 
                 await channel.send({
