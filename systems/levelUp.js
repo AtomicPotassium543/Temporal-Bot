@@ -12,6 +12,7 @@ module.exports = {
 
         const Configuration = mongoose.models.Configuration;
         const Level = mongoose.models.Level;
+        const RoleLevel = mongoose.models.RoleLevel;
 
         client.on(Events.MessageCreate, async message => {
             try {
@@ -19,7 +20,6 @@ module.exports = {
                 // Ignore DMs and bots
                 if (!message.guild) return;
                 if (message.author.bot) return;
-
 
                 const config = await Configuration.findOne({ GuildId: message.guild.id })
 
@@ -76,6 +76,20 @@ module.exports = {
                     .setColor('Gold')
                     .setFooter(`Powered by ${message.client.user.username}.`)
                     .setTimestamp();
+
+                // Checking if the user has surpassed a certain level requirement for a role.
+
+                const LevelRole = await RoleLevel.find({
+                    GuildId: message.guild.id,
+                    level: {"$gte": data.level}
+                }).sort({ fieldName: -1 }).limit(1)
+
+                if (LevelRole) {
+                    const role = await message.guild.roles.fetch(LevelRole.roleId);
+                    const member = await user.guild.members.cache.fetch(user.id)
+
+                    await member.roles.add(role)
+                }
 
                 await channel.send({
                     embeds: [embed]

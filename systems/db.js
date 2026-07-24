@@ -25,7 +25,11 @@ module.exports = {
                 BackupCreateInterval: Number,
                 BackupDeleteInterval: Number,
                 BlacklistedWords: String,
-                BoosterChannelID: String
+                BoosterChannelID: String,
+                StarChannelIDs: String,
+                FeaturedChannelID: String,
+                FeaturedRoleID: String,
+                ReactionRequirement: Number
             }));
             
             mongoose.model('backup', new mongoose.Schema({

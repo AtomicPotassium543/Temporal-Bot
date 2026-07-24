@@ -22,18 +22,6 @@ module.exports = {
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id });
 
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ChangeNickname)) {
-            const Embed = new EmbedBuilder()
-                .setTitle("❌ Oops! | Permission Denied")
-                .setDescription(`You do not have the sufficient permission to change your username!`)
-                .setColor('Red')
-                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
-                .setTimestamp();
-            await interaction.editReply({ embeds: [Embed] })
-
-            return
-        }
-
         await interaction.member.edit({ nick: newName });
 
         const Embed = new EmbedBuilder()
