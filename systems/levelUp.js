@@ -84,12 +84,14 @@ module.exports = {
                     level: {"$lte": data.level}
                 }).sort({ fieldName: -1 })
 
-                for (const LevelRole of LevelRoles) {
-                    if (LevelRole) {
-                        const role = await message.guild.roles.fetch(LevelRole.roleId);
-                        const member = await user.guild.members.cache.fetch(user.id)
+                if (LevelRoles) {
+                    for (const LevelRole of LevelRoles) {
+                        if (LevelRole) {
+                            const role = await message.guild.roles.fetch(LevelRole.roleId);
+                            const member = await user.guild.members.cache.fetch(user.id)
 
-                        await member.roles.add(role)
+                            await member.roles.add(role)
+                        }
                     }
                 }
 
