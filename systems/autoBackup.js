@@ -142,7 +142,7 @@ module.exports = {
                     }
 
                     const AutomaticBackups = (await Backup.find({ automatic: false, GuildId: guild.id })).sort((a, b) => a.timestamp - b.timestamp);
-
+                    
                     if (AutomaticBackups.length != 0 && AutomaticBackups[0].timestamp < Date.now() - Configuration.BackupDeleteInterval * 24 * 60 * 60 * 1000) {
                         continue
                     }

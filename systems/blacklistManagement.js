@@ -11,27 +11,18 @@ module.exports = {
 
         client.on(Events.MessageCreate, async (message) => {
 
-            console.log("reached 1")
-
             const Configuration = await mongoose.models.Configuration.findOne({ GuildId: message.guild.id });
             if (!Configuration) {
                 return
             }
-
-            console.log("reached 2")
-            console.log(Configuration.BlacklistedWords)
-
+            
             if (!Configuration.BlacklistedWords) {
                 return
             }
-
-            console.log("Reached 3")
         
             const blacklist = Configuration.BlacklistedWords.split(",") || []
 
             let Deleteable = false
-
-            console.log("Reached 4")
 
             for (const word of blacklist) {
                 const lowerCased = word.toLowerCase()
