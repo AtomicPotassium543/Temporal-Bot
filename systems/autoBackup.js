@@ -1,6 +1,6 @@
 const { ChannelType, Client } = require('discord.js');
 const mongoose = require('mongoose');
-const corn = require('node-cron');
+const cron = require('node-cron');
 
 module.exports = {
     /**

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, userMention, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, userMention, ButtonStyle, ChannelType } = require('discord.js');
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -22,96 +22,79 @@ const words = [
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('verify')
-        .setDescription('Link your roblox account with your discord account.'),
+        .setDescription('Verification Administration Commands')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('create')
+                .setDescription('Initialize a verification process for the server.')
+        ),
     async execute(interaction) {
         await interaction.deferReply();
 
-        if (!interaction.client.VerificationData) {
-            interaction.client.VerificationData = new Map();
-        }
+        const subcommand = interaction.options.getSubcommand();
 
-        const config = await Configuration.findOne({ GuildId: interaction.guild.id });
-
-        const Embed = new EmbedBuilder()
-            .setTitle('🔁 Process Started | Verification')
-            .setDescription("This will continue in your DMs.")
-            .setColor('Yellow')
-            .setFooter({ text: `Powered by ${interaction.client.user.username}` });
-
-        const DMEmbed = new EmbedBuilder()
-            .setTitle('🔁 Verification Method | Verification')
-            .setDescription(`To verify your account, please select which method you would like to use.`)
-            .setFields(
-                { name: "Method 1: OAuth2 Method", value: "This method will use the Roblox OAuth2 system to verify your account. This is the recommended method.", inline: false },
-                { name: "Method 2: Description Method", value: "This method will require you to set your account description to a certain list of words to verify your account.", inline: false }
-            )
-            .setColor('Yellow')
-            .setFooter({ text: `Powered by ${interaction.client.user.username}` });
-
-        interaction.client.VerificationData.set(interaction.user.id, {
-            "verificationCode": verificationCode,
-            "guildId": interaction.guild.id
-        });
-
-        const row = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('oauth2')
-                    .setLabel('OAuth2 Method')
-                    .setStyle(ButtonStyle.Link)
-                    .setURL(`https://apis.roblox.com/oauth/v1/authorize?client_id=${process.env.OAUTH_CLIENT_ID}&redirect_uri=${process.env.REDIRECT_URI}&scope=openid&response_type=code&nonce=12345&state=${interaction.user.id}`),
-                new ButtonBuilder()
-                    .setCustomId('description')
-                    .setLabel('Description Method')
-                    .setStyle(ButtonStyle.Primary)
-            );
-
-        const response = await interaction.user.send({ embeds: [DMEmbed], components: [row] });
-
-        const collector = response.createMessageComponentCollector({
-            filter: (i) => i.user.id === interaction.user.id,
-            time: 120000
-        });
-
-        collector.on('collect', async (i) => {
-            if (i.customId === 'description') {
-
-                const verificationCode = words[Math.floor(Math.random() * words.length)];
-
-                const descriptionEmbed = new EmbedBuilder()
-                    .setTitle('🔁 Description Method | Verification')
-                    .setDescription('Please set your Roblox account description to the following text to verify your account.')
-                    .setFields({
-                        name: "Verification Code", value: verificationCode, inline: false
-                    })
-                    .setColor('Yellow')
-                    .setFooter({ text: `Powered by ${interaction.client.user.username}` });
-
-                const verificationRow = new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId('verify')
-                            .setLabel('Verify')
-                            .setEmoji("✅")
-                            .setStyle(ButtonStyle.Green)
-                    );
-
-                const VerificationResponse = await interaction.user.send({ embeds: [descriptionEmbed], components: [verificationRow] });
-
-                const VerificationCollector = VerificationResponse.createMessageComponentCollector({
-                    filter: (i) => i.user.id === interaction.user.id,
-                    time: 300000
-                });
-
-                VerificationCollector.on('collect', async (i) => {
-                    if (i.customId === 'verify') {
-                        const verificationData = interaction.client.VerificationData.get(interaction.user.id);
-                    }
-
-                });
-
-                await interaction.editReply({ embeds: [Embed] });
+        if (subcommand === 'create') {
+            
+            if (interaction.user.id != interaction.guild.ownerId) {
+                return interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
             }
-        })
+            
+            const Configuration = await Configuration.findOne({ guildId: interaction.guild.id });
+
+            const UnverifiedRole = interaction.guild.roles.cache.get(Configuration.UnVerifiedRoleID);
+
+            if (!UnverifiedRole) {
+                await interaction.guild.roles.create({
+                    name: 'Unverified',
+                    color: 'Grey',
+                    permissions: []
+                });
+            }
+
+            const VerificationRole = interaction.guild.roles.cache.get(Configuration.VerifiedRoleID);
+
+            if (!VerificationRole) {
+                await interaction.guild.roles.create({
+                    name: 'Verified',
+                    color: 'Green',
+                    permissions: []
+                });
+            }
+
+            const VerificationChannel = interaction.guild.channels.cache.get(Configuration.VerificationChannelID);
+
+            if (!VerificationChannel) {
+                await interaction.guild.channels.create({
+                    name: 'verification',
+                    type: ChannelType.GuildText,
+                });
+            }
+
+            const Embed = new EmbedBuilder()
+                .setTitle('🔁 Verification Method | Verification')
+                .setDescription(`To verify your account, please select which method you would like to use.`)
+                .setFields(
+                    { name: "Method 1: OAuth2 Method", value: "This method will use the Roblox OAuth2 system to verify your account. This is the recommended method.", inline: false },
+                    { name: "Method 2: Description Method", value: "This method will require you to set your account description to a certain list of words to verify your account.", inline: false }
+                )
+                .setColor('Yellow')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}` });
+            
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('verify_oauth2')
+                        .setLabel('OAuth2 Method')
+                        .setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder()
+                        .setCustomId('verify_description')
+                        .setLabel('Description Method')
+                        .setStyle(ButtonStyle.Secondary)
+                );
+
+            const Message = await VerificationChannel.send({ embeds: [Embed], ephemeral: true });
+
+            await interaction.editReply({ content: `Verification process has been initialized in ${(VerificationChannel)}.`, ephemeral: true });
+        }
     }
 };

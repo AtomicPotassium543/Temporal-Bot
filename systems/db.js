@@ -29,7 +29,11 @@ module.exports = {
                 StarChannelIDs: String,
                 FeaturedChannelID: String,
                 FeaturedRoleID: String,
-                ReactionRequirement: Number
+                ReactionRequirement: Number,
+                VerificationChannelID: String,
+                VerificationMessageID: String,
+                VerifiedRoleID: String,
+                UnVerifiedRoleID: String
             }));
             
             mongoose.model('backup', new mongoose.Schema({
@@ -92,6 +96,16 @@ module.exports = {
                 moderatorId: String,
                 reason: String,
                 timestamp: Date
+            }));
+
+            mongoose.model('OAuth2Verification', new mongoose.Schema({
+                GuildId: String,
+                RobloxId: {
+                    type: String,
+                    default: ""
+                },
+                DiscordId: String,
+                WebVerified: Boolean
             }));
 
             mongoose.model('Verification', new mongoose.Schema({
