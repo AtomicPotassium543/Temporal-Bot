@@ -1,4 +1,4 @@
-const { Client, ChannelType, Collection, Events } = require('discord.js');
+const { Client, ChannelType, Collection, EmbedBuilder, Events } = require('discord.js');
 const mongoose = require('mongoose');
 
 module.exports = {

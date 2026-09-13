@@ -33,14 +33,14 @@ module.exports = {
         }
     
         const selectMenu = new StringSelectMenuBuilder()
-                    .setCustomId('selectgame')
-                    .setPlaceholder('Select a game')
-                    .addOptions(
-                        games.slice(0, 25).map(game => ({
-                            label: game.name.slice(0, 100),
-                            value: game._id.toString()
-                        }))
-                    );
+            .setCustomId('selectgame')
+            .setPlaceholder('Select a game')
+            .addOptions(
+                games.slice(0, 25).map(game => ({
+                    label: game.name.slice(0, 100),
+                    value: game._id.toString()
+                }))
+            );
     
         const message = await interaction.reply({ content: 'Select a game to view release date for:', components: [new ActionRowBuilder().addComponents(selectMenu)] });
     

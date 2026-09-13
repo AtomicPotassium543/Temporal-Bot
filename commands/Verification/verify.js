@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, userMention, ButtonStyle, ChannelType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType } = require('discord.js');
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -29,7 +29,7 @@ module.exports = {
                 .setDescription('Initialize a verification process for the server.')
         ),
     async execute(interaction) {
-        await interaction.deferReply();
+        await interaction.deferReply({ ephemeral: true });
 
         const subcommand = interaction.options.getSubcommand();
 
@@ -39,9 +39,11 @@ module.exports = {
                 return interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
             }
             
-            const Configuration = await Configuration.findOne({ guildId: interaction.guild.id });
+            const ConfigurationData = await Configuration.findOne({ GuildId: interaction.guild.id });
 
-            const UnverifiedRole = interaction.guild.roles.cache.get(Configuration.UnVerifiedRoleID);
+            console.log(ConfigurationData);
+
+            const UnverifiedRole = interaction.guild.roles.cache.get(ConfigurationData.UnVerifiedRoleID);
 
             if (!UnverifiedRole) {
                 await interaction.guild.roles.create({
@@ -49,25 +51,31 @@ module.exports = {
                     color: 'Grey',
                     permissions: []
                 });
+
+                await Configuration.updateOne({ GuildId: interaction.guild.id }, { UnVerifiedRoleID: UnverifiedRole.id });
             }
 
-            const VerificationRole = interaction.guild.roles.cache.get(Configuration.VerifiedRoleID);
+            const VerifiedRole = interaction.guild.roles.cache.get(ConfigurationData.VerifiedRoleID);
 
-            if (!VerificationRole) {
+            if (!VerifiedRole) {
                 await interaction.guild.roles.create({
                     name: 'Verified',
                     color: 'Green',
                     permissions: []
                 });
+
+                await Configuration.updateOne({ GuildId: interaction.guild.id }, { VerifiedRoleID: VerifiedRole.id });
             }
 
-            const VerificationChannel = interaction.guild.channels.cache.get(Configuration.VerificationChannelID);
+            const VerificationChannel = interaction.guild.channels.cache.get(ConfigurationData.VerificationChannelID);
 
             if (!VerificationChannel) {
                 await interaction.guild.channels.create({
                     name: 'verification',
                     type: ChannelType.GuildText,
                 });
+
+                await Configuration.updateOne({ guildId: interaction.guild.id }, { VerificationChannelID: VerificationChannel.id });
             }
 
             const Embed = new EmbedBuilder()
@@ -92,9 +100,9 @@ module.exports = {
                         .setStyle(ButtonStyle.Secondary)
                 );
 
-            const Message = await VerificationChannel.send({ embeds: [Embed], ephemeral: true });
+            const Message = await VerificationChannel.send({ embeds: [Embed], components: [row] });
 
-            await interaction.editReply({ content: `Verification process has been initialized in ${(VerificationChannel)}.`, ephemeral: true });
+            await interaction.editReply({ content: `Verification process has been initialized in ${(VerificationChannel)}.` });
         }
     }
 };

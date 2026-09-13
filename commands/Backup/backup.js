@@ -57,6 +57,20 @@ module.exports = {
 
         if (interaction.options.getSubcommand() === "create") {
 
+            // Checking all manual backups in order to check if guild backups >= 5
+            const ManualBackups = await Backup.find({ automatic: false, GuildId: interaction.guild.id })
+
+            if (ManualBackups.length >= 5) {
+                const embed = new EmbedBuilder()
+                    .setTitle('❌ Oops | Backup Limit')
+                    .setDescription("You've reached the maximum amount of manual backups, please delete backups before trying again!")
+                    .setColor('Red')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+                return await interaction.editReply({ embeds: [embed] })
+            }
+
+            // Fetch all channels & map all their properties.
             const channels = await interaction.guild.channels.fetch();
             const Channels = channels
                 .sort((a, b) => {
@@ -88,6 +102,7 @@ module.exports = {
                     viewable: channel.viewable
                 }))
 
+            // Fetch all roles & map all their properties.
             const roles = await interaction.guild.roles.fetch();
             const Roles = roles
                 .filter(role =>
@@ -107,6 +122,7 @@ module.exports = {
                     permissions: role.permissions.bitfield.toString()
                 }));
 
+            // Setting relative Ids (relative to Configuration) to the roles & channels for reinitializing the configuration file.
             const roleIdToRelative = new Map(Roles.map(role => [role.id, role.relativeId]));
             const channelIdToRelative = new Map(Channels.map(channel => [channel.id, channel.relativeId]));
 
@@ -130,18 +146,7 @@ module.exports = {
                 RelativeConfiguration[key] = value;
             }
 
-            const ManualBackups = await Backup.find({ automatic: false, GuildId: interaction.guild.id })
-
-            if (ManualBackups.length >= 5) {
-                const embed = new EmbedBuilder()
-                    .setTitle('❌ Oops | Backup Limit')
-                    .setDescription("You've reached the maximum amount of manual backups, please delete backups before trying again!")
-                    .setColor('Red')
-                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
-                    .setTimestamp();
-                return await interaction.editReply({ embeds: [embed] })
-            }
-
+            // Inserting the data collected for future use
             await Backup.insertOne({
                 GuildId: interaction.guild.id,
                 timestamp: Date.now(),

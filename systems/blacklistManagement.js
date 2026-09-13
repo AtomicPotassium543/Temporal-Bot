@@ -11,6 +11,10 @@ module.exports = {
 
         client.on(Events.MessageCreate, async (message) => {
 
+            if (!message.guild) {
+                return
+            }
+
             const Configuration = await mongoose.models.Configuration.findOne({ GuildId: message.guild.id });
             if (!Configuration) {
                 return
@@ -59,6 +63,10 @@ module.exports = {
         })
 
         client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
+
+            if (!oldMessage.guild) {
+                return
+            }
 
             console.log("reached editing")
 

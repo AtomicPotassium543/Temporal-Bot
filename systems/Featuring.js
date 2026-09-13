@@ -17,9 +17,12 @@ module.exports = {
         client.on(Events.MessageCreate, async (message) => {
             
             const ConfigurationData = await Configuration.findOne({ GuildId: message.guildId })
-            const channel = message.channel
             
             if (!ConfigurationData) {
+                return
+            }
+
+            if (!ConfigurationData.StarChannelIDs) {
                 return
             }
 

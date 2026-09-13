@@ -31,7 +31,8 @@ async function startBot() {
         "MemberTools",
         "GameInformation",
         "Backup",
-        "Ticket"
+        "Ticket",
+        "Verification"
     ];
 
     const utilityFolders = []

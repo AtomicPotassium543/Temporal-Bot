@@ -1,9 +1,9 @@
 
 
 const { default: axios } = require('axios');
-const { Client, ChannelType, Collection, Events, EmbedBuilder } = require('discord.js');
+const { Events, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ModalBuilder, TextInputBuilder } = require('discord.js');
 const mongoose = require('mongoose');
-const { express } = require('express.js');
+const { express } = require('express');
 const cron = require('node-cron');
 
 const VerificationCode = process.env.VERIFICATION_AUTHORIZATION_CODE;
@@ -25,7 +25,7 @@ module.exports = {
     /**
      * @param {client} Client - The Discord client instance.  
      * @returns {Promise<void>}
-     * @throws {Error} If there is an error connecting to the database.
+     * @throws {Error} If there is an error.
      */
 
     initialize: async function (client) {
@@ -41,23 +41,41 @@ module.exports = {
                 const Config = await Configuration.findOne({ guildId: member.guild.id });
 
                 if (!Config) {
-                    return;
+                    return
                 }
 
                 const UnverifiedRole = member.guild.roles.cache.get(Config.UnVerifiedRoleID);
 
                 if (!UnverifiedRole) {
-                    return;
+                    return
                 }
 
                 await member.roles.add(UnverifiedRole);
+
+                const VerificationData = await Verification.findOne({ GuildId: member.guild.id, DiscordId: member.id });
+
+                if (VerificationData) {
+                    const VerifiedRole = member.guild.roles.cache.get(Config.VerifiedRoleID);
+                    
+                    if (!VerifiedRole) {
+                        return
+                    }
+
+                    const RobloxId = VerificationData.RobloxId;
+                    const response = await axios.get(`https://users.roblox.com/v1/users/${RobloxId}`);
+
+                    const username = response.data.name;
+
+                    await member.edit({ nick: username });
+                    await member.roles.add(VerifiedRole);
+                }
             } catch (error) {
                 console.error('Error fetching configuration:', error);
             }
         });
 
         client.on(Events.InteractionCreate, async (interaction) => {
-            
+
             if (interaction.isButton()) {
 
                 // Verification starting point using roblox's description method
@@ -77,7 +95,7 @@ module.exports = {
                         .setColor('Yellow')
                         .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                         .setTimestamp();
-                    
+
                     const Row = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder()
@@ -87,12 +105,10 @@ module.exports = {
                         );
 
                     const Message = await interaction.user.send({ embeds: [RobloxEmbed], components: [Row] });
-                    
+
                     try {
                         const ButtonInteraction = await Message.awaitMessageComponent({ filter: i => i.customId === 'submit_username' && i.user.id === interaction.user.id, time: 60000 })
-                        
-                        await ButtonInteraction.deferUpdate();
-                        
+
                         const Modal = new ModalBuilder()
                             .setCustomId('username_modal')
                             .setTitle('Roblox Username')
@@ -109,52 +125,70 @@ module.exports = {
                         await ButtonInteraction.showModal(Modal);
 
                         try {
-                            await ButtonInteraction.awaitModalSubmit({ filter: i => i.customId === 'username_modal' && i.user.id === interaction.user.id, time: 60000 })
-                        } catch (err) {
-                            console.error('Error awaiting modal submit:', err);
-                            await interaction.user.send('You did not submit the modal in time. Please try again.');
-                        }
+                            const response = await ButtonInteraction.awaitModalSubmit({ filter: i => i.customId === 'username_modal' && i.user.id === interaction.user.id, time: 60000 })
 
-                        if (ButtonInteraction.customId === 'username_modal') {
-                            const username = ButtonInteraction.fields.getTextInputValue('username');
+                            const username = response.fields.getTextInputValue('username');
 
-                            const RequestResponse = await axios.get("https://users.roblox.com/v1/usernames/users", {
+                            const RequestResponse = await axios.post("https://users.roblox.com/v1/usernames/users", {
                                 usernames: [username],
                                 excludeBannedUsers: true
                             });
 
-                            const userData = await RequestResponse.data;
+                            const userData = RequestResponse.data;
 
                             if (userData.data && userData.data.length > 0) {
+
                                 const userId = userData.data[0].id;
+
 
                                 const verificationCode = words[Math.floor(Math.random() * words.length)];
 
+
                                 const descriptionEmbed = new EmbedBuilder()
+
                                     .setTitle('🔁 Description Method | Verification')
+
                                     .setDescription('Please set your Roblox account description to the following text to verify your account.')
+
                                     .setFields({
+
                                         name: "Verification Code", value: verificationCode, inline: false
+
                                     })
+
                                     .setColor('Yellow')
+
                                     .setFooter({ text: `Powered by ${interaction.client.user.username}` });
 
+
                                 const row = new ActionRowBuilder()
+
                                     .addComponents(
+
                                         new ButtonBuilder()
+
                                             .setCustomId('verify_description_submit')
+
                                             .setLabel('I have set my description')
+
                                             .setStyle(ButtonStyle.Primary)
+
                                     );
 
+
                                 client.VerificationData.set(interaction.user.id, {
+
                                     robloxId: userId,
+
                                     verificationCode: verificationCode,
+
                                     guildId: interaction.guild.id
+
                                 });
 
+
                                 let ButtonInteraction = await interaction.user.send({ embeds: [descriptionEmbed], components: [row] });
-                                
+
                                 await ButtonInteraction.awaitMessageComponent({ filter: i => i.customId === 'verify_description_submit' && i.user.id === interaction.user.id, time: 60000 });
 
                                 let response = await axios.get(`https://users.roblox.com/v1/users/${userId}`);
@@ -162,19 +196,36 @@ module.exports = {
                                 const description = response.data.description;
 
                                 if (description === verificationCode) {
-                                    await Verification.insertOne({
-                                        GuildId: interaction.guild.id,
-                                        RobloxId: userId,
-                                        DiscordId: interaction.user.id
-                                    })
+
+                                    await Verification.findOneAndUpdate({
+
+                                            GuildId: interaction.guild.id,
+
+                                            DiscordId: interaction.user.id
+
+                                        },
+                                        {
+
+                                            RobloxId: userId
+
+                                        },
+                                        {
+                                            upsert: true
+                                        }
+                                    )
+
 
                                     const VerifiedRole = interaction.guild.roles.cache.get(Config.VerifiedRoleID);
+
                                     const UnverifiedRole = interaction.guild.roles.cache.get(Config.UnVerifiedRoleID);
 
                                     const member = await interaction.guild.members.fetch(interaction.user.id);
 
                                     await member.roles.add(VerifiedRole);
+
                                     await member.roles.remove(UnverifiedRole);
+
+                                    await interaction.user.edit({ nick: username });
 
                                     client.VerificationData.delete(interaction.user.id);
 
@@ -186,20 +237,26 @@ module.exports = {
                                         .setTimestamp();
 
                                     await interaction.user.send({ embeds: [successEmbed] });
+
                                 }
+
                             } else {
+
                                 const errorEmbed = new EmbedBuilder()
                                     .setTitle('❌ Error | User Not Found')
                                     .setDescription('The Roblox user you entered does not exist. Please try again.')
                                     .setColor('Red')
                                     .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                                     .setTimestamp();
-                                
-                                await interaction.user.send({ embeds: [errorEmbed] });
-                            }
-                        }
 
-                        
+                                await interaction.user.send({ embeds: [errorEmbed] });
+
+                            }
+                        } catch (err) {
+                            console.error('Error awaiting modal submit:', err);
+                            await interaction.user.send('You did not submit the modal in time. Please try again.');
+                            return
+                        }
                     } catch (error) {
                         console.error('Error awaiting message component:', error);
                         await interaction.user.send('You did not respond in time. Please try again.');
@@ -211,7 +268,7 @@ module.exports = {
                     await interaction.deferReply({ ephemeral: true });
 
                     const Config = await Configuration.findOne({ GuildId: interaction.guild.id });
-                    
+
                     const result = await OAuth2Verification.insertOne({
                         GuildId: interaction.guild.id,
                         DiscordId: interaction.user.id,
@@ -227,16 +284,25 @@ module.exports = {
                         .setColor('Yellow')
                         .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                         .setTimestamp();
-                    
+
+                    const redirectUri = `${process.env.REDIRECT_URI}/authorization/callback`;
+
+                    const authUrl =
+                        `https://apis.roblox.com/oauth/v1/authorize` +
+                        `?client_id=${process.env.OAUTH_CLIENT_ID}` +
+                        `&response_type=code` +
+                        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                        `&scope=openid`;
+
                     const row = new ActionRowBuilder()
                         .addComponents(
                             new ButtonBuilder()
                                 .setLabel('Verify with OAuth2')
                                 .setStyle(ButtonStyle.Link)
-                                .setURL(`https://apis.roblox.com/oauth/v1/authorize?client_id=${process.env.OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${process.env.OAUTH_REDIRECT_URI + `/authorization/callback/${result._id}`}&scope=openid`)
+                                .setURL(authUrl)
                         );
 
-                    const response = await interaction.user.send({ embeds: [DMEmbed], components: [row] });
+                    await interaction.user.send({ embeds: [DMEmbed], components: [row] });
 
                     const Embed = new EmbedBuilder()
                         .setDescription("This will continue in your DMs...")
@@ -274,14 +340,14 @@ module.exports = {
 
                             await Member.roles.remove(UnVerifiedRole);
                             await Member.roles.add(VerifiedRole);
-                                
+
                             const successEmbed = new EmbedBuilder()
                                 .setTitle('✅ Success | Verification')
                                 .setDescription('You have successfully verified your Roblox account!')
                                 .setColor('Green')
                                 .setFooter({ text: `Powered by ${client.user.username}` })
                                 .setTimestamp();
-                                
+
                             await User.send({ embeds: [successEmbed] });
                         }
                     }
@@ -293,7 +359,7 @@ module.exports = {
             await CheckVerified();
         }, {
             name: "Manages verified users.",
-            description: "Creates and deletes automatic backups for all guilds.",
+            description: "Verifies users who have completed the OAuth2 verification process and updates their roles accordingly.",
             timezone: "Etc/UTC"
         });
 
