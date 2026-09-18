@@ -99,7 +99,7 @@ module.exports = {
 
         const Embed = new EmbedBuilder()
             .setTitle('✅ Success | Moderation Action')
-            .setDescription(`${userMention(user.id)} has been unwarned from the guild! They now have ${WarningCount} warning.`)
+            .setDescription(`${userMention(user.id)} has been unwarned! They now have ${WarningCount} warning.`)
             .setColor('Green')
             .setFields(
                 { name: "Moderator", value: userMention(interaction.user.id), inline: false},

@@ -1,7 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, userMention } = require('discord.js');
-
-const fs = require('node:fs');
-const path = require('node:path');
+const { SlashCommandBuilder, EmbedBuilder, userMention } = require('discord.js');
 const mongoose = require('mongoose');
 
 const Configuration = mongoose.models.Configuration;
@@ -14,6 +11,7 @@ module.exports = {
             option
                 .setName("name")
                 .setDescription("Name to change it to.")
+                .setRequired(true)
         ),
     async execute(interaction) {
         await interaction.deferReply()
@@ -21,7 +19,7 @@ module.exports = {
         const newName = interaction.options.getString('name');
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id });
-
+        
         await interaction.member.edit({ nick: newName });
 
         const Embed = new EmbedBuilder()

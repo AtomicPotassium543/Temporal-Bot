@@ -66,8 +66,6 @@ module.exports = {
             return
         }
 
-        // Storing the warning...
-
         const newWarning = await Warning.insertOne({
             GuildId: interaction.guild.id,
             userId: user.id,
@@ -77,9 +75,7 @@ module.exports = {
         })
 
         const Warnings = await Warning.find({ GuildId: interaction.guild.id, userId: user.id })
-
-        // Sending the message...
-
+        
         const Embed = new EmbedBuilder()
             .setTitle('✅ Success | Moderation Action')
             .setDescription(`${userMention(user.id)} has been warned from the guild! This is their ${Warnings.length} warning.`)

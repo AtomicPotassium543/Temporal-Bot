@@ -1,13 +1,11 @@
-const { Client, Events } = require('discord.js');
+const { Client, Events, EmbedBuilder } = require('discord.js');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const { execute } = require('../commands/Configuration/configure');
 
 module.exports = {
     /**
-     * @param {client} Client - The Discord client instance.  
+     * @param {Client} Client - The Discord client instance.  
      * @returns {Promise<void>}
-     * @throws {Error} If there is an error connecting to the database.
+     * @throws {Error} If there is an error.
      */
 
     initialize: async function (client) {
@@ -29,9 +27,8 @@ module.exports = {
             const StarChannelIDs = ConfigurationData.StarChannelIDs.split(",") || []
 
             for (const StarChannelID of StarChannelIDs) {
-                const StarChannel = await message.guild.channels.fetch(StarChannelID)
 
-                if (StarChannel) {
+                if (StarChannelID === message.channelId) {
                     
                     const reactions = message.reactions
                     const StarReactions = reactions.cache.get("⭐")
@@ -50,28 +47,32 @@ module.exports = {
 
         client.on(Events.MessageReactionAdd, async (reaction, user) => {
             
-            const ConfigurationData = await Configuration.findOne({ GuildId: user.guildId })
-            const channel = reaction.message.channel
+            const ConfigurationData = await Configuration.findOne({ GuildId: reaction.message.guildId })
             
             if (!ConfigurationData) {
+                return
+            }
+
+            if (reaction.emoji.name !== "⭐") {
                 return
             }
 
             const StarChannelIDs = ConfigurationData.StarChannelIDs.split(",") || []
 
             for (const StarChannelID of StarChannelIDs) {
-                const StarChannel = await message.guild.channels.fetch(StarChannelID)
-
+                console.log("StarChannelID: ", StarChannelID, "reaction.message.channelId: ", reaction.message.channelId)
+                const StarChannel = await reaction.message.guild.channels.fetch(StarChannelID)
                 if (StarChannel) {
-                    
-                    const reactions = message.reactions
+                    const reactions = reaction.message.reactions
                     const StarReactions = reactions.cache.get("⭐")
+
+                    console.log(`StarReactions: ${StarReactions ? StarReactions.count : 0}`)
 
                     let IgnoreAmount = 1
 
                     if (StarReactions) {
-                        const users = StarReactions.users.fetch();
-
+                        const users = await StarReactions.users.fetch();
+                        
                         users.forEach((user) => {
                             if (user.id === reaction.message.author.id) {
                                 IgnoreAmount = 2
@@ -82,21 +83,53 @@ module.exports = {
                     const RequiredReactions = ConfigurationData.ReactionRequirement;
 
                     // Checking if a message is eligible for feature
-                    if (StarReactions && StarReactions.count - IgnoreAmount > RequiredReactions) {
+
+                    const TrophyReactions = reactions.cache.get("🏆")
+
+                    const Trophyed = false
+
+                    if (TrophyReactions) {
+                        TrophyReactions.users.fetch().then((user) => {
+                            if (client.id === reaction.message.author.id) {
+                                Trophyed = true
+                            }
+                        })
+                    }
+
+                    if (StarReactions && !Trophyed && StarReactions.count - IgnoreAmount >= RequiredReactions) {
                         try {
-                            const member = await user.guild.members.cache.fetch(user.id)
+                            const member = await reaction.message.guild.members.fetch(user.id)
 
-                            const FeaturedChannel = await user.guild.channels.fetch(ConfigurationData.FeaturedChannelID);
-                            const FeaturedRole = await user.guild.roles.fetch(ConfigurationData.FeaturedRoleID);
+                            const FeaturedChannel = await reaction.message.guild.channels.fetch(ConfigurationData.FeaturedChannelID);
+                            const FeaturedRole = await reaction.message.guild.roles.fetch(ConfigurationData.FeaturedRoleID);
 
-                            if (FeaturedChannel && FeaturedRole) {
+                            // Add Award emoji
+                            await reaction.message.react("🏆")
+                            
+                            if (FeaturedRole) {
                                 try {
-
                                     await member.roles.add(FeaturedRole)
+                                } catch (err) {
+                                    console.log(err)
+                                }
+                            }
+
+                            if (FeaturedChannel) {
+                                try {
+                                    
+                                    const FeaturedEmbed = new EmbedBuilder()
+                                        .setAuthor({
+                                            "name": reaction.message.author.username,
+                                            "iconURL": reaction.message.author.displayAvatarURL()
+                                        })
+                                        .setDescription(`### **[Featured Post](${reaction.message.url})**\n\n${reaction.message.content || null}`)
+                                        .setImage(reaction.message.attachments.first()?.url || null)
+                                        .setColor('Gold')
+                                        .setFooter({ text: `Powered by ${reaction.message.client.user.username}`})  
+                                        .setTimestamp();
 
                                     await FeaturedChannel.send({
-                                        content: reaction.message.content,
-                                        attachments: reaction.message.attachments
+                                        embeds: [FeaturedEmbed]
                                     })
                                 } catch (err) {
                                     console.log(err)

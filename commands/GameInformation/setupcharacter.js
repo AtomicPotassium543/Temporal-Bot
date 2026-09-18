@@ -36,6 +36,18 @@ module.exports = {
             return interaction.reply({ embeds: [embed], ephemeral: true});
         }
 
+        const characterCount = await Character.countDocuments({ GuildId: interaction.guild.id });
+
+        if (characterCount >= 25) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Oops | Character Limit Reached')
+                .setDescription('You have reached the maximum limit of 25 characters. Please remove a character before adding a new one.')
+                .setColor('Red')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         await interaction.showModal(CharacterModal);
 
         const filter = i => i.customId === 'setupcharacter' && i.user.id === interaction.user.id;

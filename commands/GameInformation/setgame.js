@@ -36,6 +36,18 @@ module.exports = {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
+        const gameCount = await Game.countDocuments({ GuildId: interaction.guild.id });
+        
+        if (gameCount >= 25) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Oops | Game Limit Reached')
+                .setDescription('You have reached the maximum limit of 25 games. Please remove a game before adding a new one.')
+                .setColor('Red')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         await interaction.showModal(GameModal);
 
         const filter = i => i.customId === 'setgame' && i.user.id === interaction.user.id;

@@ -5,6 +5,7 @@ const { Events, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Moda
 const mongoose = require('mongoose');
 const { express } = require('express');
 const cron = require('node-cron');
+const base64url = require('base64url')
 
 const VerificationCode = process.env.VERIFICATION_AUTHORIZATION_CODE;
 
@@ -20,6 +21,14 @@ const words = [
     "crystal", "shadow", "meadow", "river", "mountain",
     "sunset", "lantern", "button", "rocket", "treasure"
 ];
+
+function generateVerificationCode(length) {
+    let code = '';
+    for (let i = 0; i < length; i++) {
+        code += words[Math.floor(Math.random() * words.length)] + ' ';
+    }
+    return code.trim();
+}
 
 module.exports = {
     /**
@@ -140,8 +149,7 @@ module.exports = {
 
                                 const userId = userData.data[0].id;
 
-
-                                const verificationCode = words[Math.floor(Math.random() * words.length)];
+                                const verificationCode = generateVerificationCode(5);
 
 
                                 const descriptionEmbed = new EmbedBuilder()
@@ -269,12 +277,6 @@ module.exports = {
 
                     const Config = await Configuration.findOne({ GuildId: interaction.guild.id });
 
-                    const result = await OAuth2Verification.insertOne({
-                        GuildId: interaction.guild.id,
-                        DiscordId: interaction.user.id,
-                        WebVerified: false
-                    });
-
                     const DMEmbed = new EmbedBuilder()
                         .setTitle('🔁 OAuth2 Method | Verification')
                         .setDescription('Please click the link below in order to verify your Roblox account using OAuth2.')
@@ -285,14 +287,23 @@ module.exports = {
                         .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                         .setTimestamp();
 
-                    const redirectUri = `${process.env.REDIRECT_URI}/authorization/callback`;
+                    const redirectUri = `${process.env.REDIRECT_URI}/auth/roblox/callback`;
+                    
+                    const state = {
+                        "stage": "verification",
+                        "GuildId": interaction.guild.id,
+                        "DiscordId": interaction.user.id,
+                    }
 
                     const authUrl =
                         `https://apis.roblox.com/oauth/v1/authorize` +
                         `?client_id=${process.env.OAUTH_CLIENT_ID}` +
                         `&response_type=code` +
                         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                        `&scope=openid`;
+                        `&scope=openid%20profile` +
+                        `&state=${base64url.encode(JSON.stringify(state))}`;
+                    
+                    
 
                     const row = new ActionRowBuilder()
                         .addComponents(

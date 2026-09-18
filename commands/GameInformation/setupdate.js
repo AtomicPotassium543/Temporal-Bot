@@ -36,7 +36,6 @@ module.exports = {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
-        await mongoose.connect(process.env.MONGODB_URI);
         const games = await Game.find({ GuildId: interaction.guild.id });
 
         if (games.length === 0) {

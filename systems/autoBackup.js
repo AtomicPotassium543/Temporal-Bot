@@ -147,7 +147,7 @@ module.exports = {
                         continue
                     }
 
-                    const BackupData = await Backup.findByIdAndDelete(AutomaticBackups[0].backupId)
+                    await Backup.findByIdAndDelete(AutomaticBackups[0].backupId)
                 } catch (error) {
                     console.log(error)
                 }

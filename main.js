@@ -1,17 +1,13 @@
-const { Client, AttachmentBuilder, Events, ModalBuilder, GatewayIntentBits, Collection, MessageFlags, EmbedBuilder, PermissionFlagsBits, GuildChannel, ChannelType, ActionRowBuilder, ButtonBuilder, InteractionResponse, ButtonStyle, TextInputBuilder, TextInputStyle, channelMention, userMention, ButtonInteraction, roleMention } = require('discord.js');
-const { AntiRaidManager } = require('discord-antiraid');
+const { Client, Events, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { REST, Routes } = require('discord.js');
-const mongoose = require('mongoose');
 
 const dotenv = require('dotenv');
 
 dotenv.config()
 
 const TOKEN = process.env.TOKEN
-const GUILD_ID = process.env.GUILD_ID
 const CLIENT_ID = process.env.CLIENT_ID
 
 const client = new Client({ intents: [Object.values(GatewayIntentBits)] });
@@ -34,8 +30,6 @@ async function startBot() {
         "Ticket",
         "Verification"
     ];
-
-    const utilityFolders = []
 
     const commands = [];
     client.commands = new Collection();
@@ -112,24 +106,24 @@ async function startBot() {
                     const command = require(filePath);
 
                     if (!command.data || !command.execute) {
-                        console.warn(`Skipping invalid command: ${file}`);
-                        continue;
+                        console.warn(`Skipping invalid command: ${file}`)
+                        continue
                     }
 
-                    commands.push(command.data.toJSON());
-                    client.commands.set(command.data.name, command);
+                    commands.push(command.data.toJSON())
+                    client.commands.set(command.data.name, command)
 
-                    console.log(`Loaded command: ${command.data.name}`);
+                    console.log(`Loaded command: ${command.data.name}`)
                 } catch (err) {
-                    console.error(`Failed to load ${filePath}:`, err);
+                    console.error(`Failed to load ${filePath}:`, err)
                 }
             }
         }
 
-        console.log(`Loaded ${commands.length} commands.`);
+        console.log(`Loaded ${commands.length} commands.`)
 
         // Register commands
-        const rest = new REST({ version: "10" }).setToken(TOKEN);
+        const rest = new REST({ version: "10" }).setToken(TOKEN)
 
         await rest.put(
             Routes.applicationCommands(CLIENT_ID),

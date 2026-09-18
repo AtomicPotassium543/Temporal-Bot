@@ -1,6 +1,6 @@
 
 
-const { Client, ChannelType, Collection, Events } = require('discord.js');
+const { Client, ChannelType, TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder, Events, PermissionFlagsBits, AttachmentBuilder, EmbedBuilder, userMention, ButtonStyle, ButtonBuilder, roleMention, GuildChannel } = require('discord.js');
 const mongoose = require('mongoose');
 
 module.exports = {
@@ -12,6 +12,7 @@ module.exports = {
 
     initialize: async function (client) {
 
+        const Configuration = mongoose.models.Configuration;
         const Ticket = mongoose.models.Ticket;
         const TicketConfiguration = mongoose.models.TicketConfiguration;
 
@@ -262,20 +263,20 @@ module.exports = {
 
             const LogEmbed = new EmbedBuilder()
                 .setTitle("Ticket Closed!")
-                .setDescription(`Ticket ${Channel.name} (${Channel.id}) has been deleted!`)
-                .addFields({ name: "Closed by", value: `${userMention(interaction.user.id)} (${interaction.user.id})`, inline: true })
-                .addFields({ name: "Reason", value: reason, inline: true })
+                .setDescription(`Ticket ${channel.name} (${channel.id}) has been deleted!`)
+                .addFields({ name: "Closed by", value: `N/A`, inline: true })
+                .addFields({ name: "Reason", value: "Channel Deletion.", inline: true })
                 .setColor("Blurple")
-                .setFooter({ text: `Powered by ${interaction.client.user.username}` })
+                .setFooter({ text: `Powered by ${channel.client.user.username}` })
                 .setTimestamp()
 
             const LogFile = new AttachmentBuilder(
                 Buffer.from(TicketData.messages, 'utf-8'),
-                { name: `log-${Channel.name}.txt` }
+                { name: `log-${channel.name}.txt` }
             );
 
             try {
-                const LogChannel = await interaction.guild.channels.fetch(config.LogsChannelID)
+                const LogChannel = await channel.guild.channels.fetch(config.LogsChannelID)
 
                 await LogChannel.send({ embeds: [LogEmbed], files: [LogFile] })
             } catch (error) {
@@ -289,7 +290,7 @@ module.exports = {
                         .setDescription(`Your ticket has been deleted. If you have any more issues, feel free to create another ticket!`)
                         .addFields({ name: "Reason", value: "Channel deletion.", inline: true })
                         .setColor("Blurple")
-                        .setFooter({ text: `Powered by ${interaction.client.user.username}` })
+                        .setFooter({ text: `Powered by ${channel.client.user.username}` })
                         .setTimestamp()
 
                     await member.send({ embeds: [UserEmbed] })
