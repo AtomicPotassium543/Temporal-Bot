@@ -25,8 +25,8 @@ module.exports = {
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id });
 
-        if (!interaction.member.roles.cache.has(config.StaffRoleID)) {
-            await interaction.editReply({ content: "You are not allowed to use this command!" })
+        if (!interaction.member.roles.cache.has(config.InfectedRoleID)) {
+            await interaction.editReply({ content: "You need to be infected in order to use this command!" })
             return
         }
 

@@ -1,4 +1,4 @@
-const { Client, ChannelType, Collection, Events } = require('discord.js');
+const { EmbedBuilder, Events, userMention } = require('discord.js');
 const mongoose = require('mongoose');
 
 module.exports = {
@@ -60,7 +60,7 @@ module.exports = {
                 if (!leveledUp) return;
 
                 const channel = message.guild.channels.cache.get(
-                    config.levelUpChannelID
+                    config.LevelsChannelID
                 );
 
                 if (!channel) {
@@ -74,7 +74,7 @@ module.exports = {
                         `${userMention(message.author.id)} has reached **Level ${data.level}**!`
                     )
                     .setColor('Gold')
-                    .setFooter(`Powered by ${message.client.user.username}.`)
+                    .setFooter({ text: `Powered by ${message.client.user.username}.`})
                     .setTimestamp();
 
                 // Checking if the user has surpassed a certain level requirement for a role.
@@ -85,10 +85,12 @@ module.exports = {
                 }).sort({ fieldName: -1 })
 
                 if (LevelRoles) {
+                    console.log("Hello")
+                    console.log(LevelRoles)
                     for (const LevelRole of LevelRoles) {
                         if (LevelRole) {
                             const role = await message.guild.roles.fetch(LevelRole.roleId);
-                            const member = await user.guild.members.cache.fetch(user.id)
+                            const member = await message.guild.members.fetch(message.author.id)
 
                             await member.roles.add(role)
                         }

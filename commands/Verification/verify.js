@@ -46,36 +46,41 @@ module.exports = {
             const UnverifiedRole = interaction.guild.roles.cache.get(ConfigurationData.UnVerifiedRoleID);
 
             if (!UnverifiedRole) {
-                await interaction.guild.roles.create({
-                    name: 'Unverified',
-                    color: 'Grey',
-                    permissions: []
-                });
-
-                await Configuration.updateOne({ GuildId: interaction.guild.id }, { UnVerifiedRoleID: UnverifiedRole.id });
+                const Embed = new EmbedBuilder()
+                    .setTitle('❌ Oops | Unverified Role Not Found')
+                    .setDescription('The unverified role was not found. Please configure the unverified role and try again.')
+                    .setColor('Red')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}` })
+                    .setTimestamp();
+                
+                return interaction.editReply({ embeds: [Embed], ephemeral: true });
             }
 
             const VerifiedRole = interaction.guild.roles.cache.get(ConfigurationData.VerifiedRoleID);
 
             if (!VerifiedRole) {
-                await interaction.guild.roles.create({
-                    name: 'Verified',
-                    color: 'Green',
-                    permissions: []
-                });
-
-                await Configuration.updateOne({ GuildId: interaction.guild.id }, { VerifiedRoleID: VerifiedRole.id });
+                const Embed = new EmbedBuilder()
+                    .setTitle('❌ Oops | Verified Role Not Found')
+                    .setDescription('The verified role was not found. Please configure the verified role and try again.')
+                    .setColor('Red')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}` })
+                    .setTimestamp();
+                
+                return interaction.editReply({ embeds: [Embed], ephemeral: true });
             }
 
             const VerificationChannel = interaction.guild.channels.cache.get(ConfigurationData.VerificationChannelID);
 
             if (!VerificationChannel) {
-                await interaction.guild.channels.create({
-                    name: 'verification',
-                    type: ChannelType.GuildText,
-                });
-
-                await Configuration.updateOne({ guildId: interaction.guild.id }, { VerificationChannelID: VerificationChannel.id });
+                
+                const Embed = new EmbedBuilder()
+                    .setTitle('❌ Oops | Verification Channel Not Found')
+                    .setDescription('The verification channel was not found. Please configure the verification channel and try again.')
+                    .setColor('Red')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}` })
+                    .setTimestamp();
+                
+                return interaction.editReply({ embeds: [Embed], ephemeral: true });
             }
 
             const Embed = new EmbedBuilder()

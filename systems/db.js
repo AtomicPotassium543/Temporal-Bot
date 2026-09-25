@@ -1,6 +1,8 @@
-const { Client } = require('discord.js');
+const { Client, EmbedBuilder } = require('discord.js');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const axios = require('axios');
+const cron = require('node-cron');
 
 module.exports = {
     /**
@@ -13,7 +15,7 @@ module.exports = {
         try {
             await mongoose.connect(process.env.MONGODB_URI);
             
-            mongoose.model('Configuration', new mongoose.Schema({
+            const Configuration = mongoose.model('Configuration', new mongoose.Schema({
                 GuildId: String,
                 StaffRoleID: String,
                 TicketViewerId: String,
@@ -111,7 +113,11 @@ module.exports = {
             mongoose.model('Verification', new mongoose.Schema({
                 GuildId: String,
                 RobloxId: String,
-                DiscordId: String
+                DiscordId: String,
+                Verified: {
+                    type: Boolean,
+                    default: false
+                }
             }));
 
             mongoose.model('Game', new mongoose.Schema({

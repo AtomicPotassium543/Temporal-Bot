@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder, userMention } = require('discord.js');
 
-const fs = require('node:fs');
 const mongoose = require('mongoose');
 
 const Configuration = mongoose.models.Configuration;
 const Level = mongoose.models.Level;
+const RoleLevel = mongoose.models.RoleLevel;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -30,7 +30,7 @@ module.exports = {
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id });
 
-        if (!interaction.member.roles.cache.has(config.StaffRoleID)) {
+        if (interaction.user.id != interaction.guild.ownerId) {
             const embed = new EmbedBuilder()
                 .setTitle('❌ Oops | Permission Denied')
                 .setDescription('You are not allowed to use this command!')
@@ -56,6 +56,22 @@ module.exports = {
             { $set: { level: level }, $setOnInsert: { GuildId: interaction.guild.id, userId: user.id, Experience: 0 } },
             { upsert: true }
         );
+
+        const LevelRoles = await RoleLevel.find({
+            GuildId: interaction.guild.id,
+            level: {"$lte": level}
+        }).sort({ fieldName: -1 })
+
+        if (LevelRoles) {
+            for (const LevelRole of LevelRoles) {
+                if (LevelRole) {
+                    const role = await interaction.guild.roles.fetch(LevelRole.roleId);
+                    const member = await interaction.guild.members.fetch(interaction.user.id)
+
+                    await member.roles.add(role)
+                }
+            }
+        }
 
         const Embed = new EmbedBuilder()
             .setTitle('✅ Success! | Level Updated')

@@ -57,16 +57,23 @@ module.exports = {
                 return
             }
 
+            const TrophyReactions = reaction.message.reactions.cache.get("🏆")
+
+            if (TrophyReactions) {
+                const trophyUsers = await TrophyReactions.users.fetch()
+
+                if (trophyUsers.has(client.user.id)) {
+                    return
+                }
+            }
+
             const StarChannelIDs = ConfigurationData.StarChannelIDs.split(",") || []
 
             for (const StarChannelID of StarChannelIDs) {
-                console.log("StarChannelID: ", StarChannelID, "reaction.message.channelId: ", reaction.message.channelId)
                 const StarChannel = await reaction.message.guild.channels.fetch(StarChannelID)
                 if (StarChannel) {
                     const reactions = reaction.message.reactions
                     const StarReactions = reactions.cache.get("⭐")
-
-                    console.log(`StarReactions: ${StarReactions ? StarReactions.count : 0}`)
 
                     let IgnoreAmount = 1
 
@@ -84,45 +91,31 @@ module.exports = {
 
                     // Checking if a message is eligible for feature
 
-                    const TrophyReactions = reactions.cache.get("🏆")
-
-                    const Trophyed = false
-
-                    if (TrophyReactions) {
-                        TrophyReactions.users.fetch().then((user) => {
-                            if (client.id === reaction.message.author.id) {
-                                Trophyed = true
-                            }
-                        })
-                    }
-
-                    if (StarReactions && !Trophyed && StarReactions.count - IgnoreAmount >= RequiredReactions) {
+                    if (StarReactions && StarReactions.count - IgnoreAmount >= RequiredReactions) {
                         try {
-                            const member = await reaction.message.guild.members.fetch(user.id)
+                            const member = await reaction.message.guild.members.fetch(reaction.message.author.id)
+
+                            if (!member) {
+                                return
+                            }
 
                             const FeaturedChannel = await reaction.message.guild.channels.fetch(ConfigurationData.FeaturedChannelID);
-                            const FeaturedRole = await reaction.message.guild.roles.fetch(ConfigurationData.FeaturedRoleID);
-
+                            
                             // Add Award emoji
                             await reaction.message.react("🏆")
-                            
-                            if (FeaturedRole) {
-                                try {
-                                    await member.roles.add(FeaturedRole)
-                                } catch (err) {
-                                    console.log(err)
-                                }
-                            }
 
+                            console.log(ConfigurationData.FeaturedRoleID)
+
+                            await member.roles.add(ConfigurationData.FeaturedRoleID);
+                            
                             if (FeaturedChannel) {
                                 try {
-                                    
                                     const FeaturedEmbed = new EmbedBuilder()
                                         .setAuthor({
                                             "name": reaction.message.author.username,
                                             "iconURL": reaction.message.author.displayAvatarURL()
                                         })
-                                        .setDescription(`### **[Featured Post](${reaction.message.url})**\n\n${reaction.message.content || null}`)
+                                        .setDescription(`### **[Featured Post](${reaction.message.url})**\n\n${reaction.message.content || ""}`)
                                         .setImage(reaction.message.attachments.first()?.url || null)
                                         .setColor('Gold')
                                         .setFooter({ text: `Powered by ${reaction.message.client.user.username}`})  

@@ -32,7 +32,7 @@ module.exports = {
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id })
 
-        if (!interaction.member.roles.cache.has(config.StaffRoleID)) {
+        if (interaction.user.id != interaction.guild.ownerId) {
             const embed = new EmbedBuilder()
                 .setTitle('❌ Oops | Permission Denied')
                 .setDescription('You are not allowed to use this command!')
@@ -43,10 +43,23 @@ module.exports = {
             return
         }
 
+
         if (level < 0) {
             const embed = new EmbedBuilder()
                 .setTitle('❌ Oops | Invalid Level')
                 .setDescription('Level must be a positive integer.')
+                .setColor('Red')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+            return interaction.editReply({ embeds: [embed] });
+        }
+
+        const NoRoles = RoleLevel.countDocuments({ GuildId: interaction.guild.id })
+
+        if (NoRoles >= 25) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Oops | Maximum roles reached')
+                .setDescription('Please delete a few roles before trying again.')
                 .setColor('Red')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();

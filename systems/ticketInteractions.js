@@ -55,6 +55,13 @@ module.exports = {
                     await interaction.reply({ content: 'Ticket category not found. Please contact an administrator.', ephemeral: true });
                     return;
                 }
+                
+                const ticketViewerRole = await interaction.guild.roles.fetch(config.TicketViewerId).catch(() => null);
+            
+                if (!ticketViewerRole) {
+                    await interaction.reply({ content: 'Ticket viewer role not found. Please update TicketViewerId in the configuration.', ephemeral: true });
+                    return;
+                }
 
                 const reasonInput = new TextInputBuilder()
                     .setCustomId("reason")
@@ -82,11 +89,32 @@ module.exports = {
                         await modalInteraction.deferReply({ ephemeral: true });
 
                         const reason = modalInteraction.fields.getTextInputValue('reason');
+                        const ticketViewerRole = await modalInteraction.guild.roles
+                            .fetch(config.TicketViewerId)
+                            .catch(() => null);
+
+                        if (!ticketViewerRole) {
+                            await modalInteraction.editReply({
+                                content: 'The configured ticket viewer role could not be found. Please contact an administrator.',
+                                ephemeral: true
+                            });
+                            return;
+                        }
+
+                        const TicketCategory = await modalInteraction.guild.channels.fetch(TicketConfig.TicketCategoryId)
+
+                        if (!TicketCategory) {
+                            await modalInteraction.editReply({
+                                content: 'The configured ticket category could not be found. Please contact an administrator.',
+                                ephemeral: true
+                            });
+                            return;
+                        }
 
                         const channel = await modalInteraction.guild.channels.create({
                             name: channelName,
                             type: 0,
-                            parent: TicketConfig.TicketCategoryId,
+                            parent: TicketCategory,
                             permissionOverwrites: [
                                 {
                                     id: interaction.guild.roles.everyone,
@@ -97,7 +125,7 @@ module.exports = {
                                     allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
                                 },
                                 {
-                                    id: config.TicketViewerId,
+                                    id: ticketViewerRole,
                                     allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]
                                 }
                             ]
@@ -127,7 +155,7 @@ module.exports = {
                             messages: "Logs:"
                         }).catch(console.error);
 
-                        channel.send({ content: roleMention(config.TicketViewerId), embeds: [TicketEmbed], components: [CloseTicketView] })
+                        channel.send({ content: roleMention(ticketViewerRole.id), embeds: [TicketEmbed], components: [CloseTicketView] })
 
                         await modalInteraction.editReply({ content: `Your ticket has been created: ${channel}`, ephemeral: true });
                     })
@@ -146,19 +174,6 @@ module.exports = {
                     const embed = new EmbedBuilder()
                         .setTitle('❌ Oops | Configuration Missing')
                         .setDescription("The configuration for this guild hasn't been made! Please contact an administrator for more information.")
-                        .setColor('Red')
-                        .setFooter({ text: `Powered by ${interaction.client.user.username}` })
-                        .setTimestamp();
-                    await interaction.editReply({ embeds: [embed] });
-                    return;
-                }
-
-                const reason = "No reason provided";
-
-                if (!interaction.member.roles.cache.has(config.TicketViewerId)) {
-                    const embed = new EmbedBuilder()
-                        .setTitle('❌ Oops | Permission Denied')
-                        .setDescription('You are not allowed to use this command!')
                         .setColor('Red')
                         .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                         .setTimestamp();
@@ -189,7 +204,7 @@ module.exports = {
                     .setTitle("Ticket Closed!")
                     .setDescription(`Ticket ${interaction.channel.name} (${interaction.channel.id}) has been deleted!`)
                     .addFields({ name: "Closed by", value: `${userMention(interaction.user.id)} (${interaction.user.id})`, inline: true })
-                    .addFields({ name: "Reason", value: reason, inline: true })
+                    .addFields({ name: "Reason", value: "N/A", inline: true })
                     .setColor("Blurple")
                     .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                     .setTimestamp();
@@ -217,7 +232,7 @@ module.exports = {
                         const UserEmbed = new EmbedBuilder()
                             .setTitle("Ticket Message")
                             .setDescription('Your ticket has been deleted. If you have any more issues, feel free to create another ticket!')
-                            .addFields({ name: "Reason", value: reason, inline: true })
+                            .addFields({ name: "Reason", value: "N/A", inline: true })
                             .setColor("Blurple")
                             .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                             .setTimestamp();

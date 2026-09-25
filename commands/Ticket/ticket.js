@@ -251,7 +251,7 @@ module.exports = {
                 return;
             }
 
-            if (!interaction.member.roles.cache.has(config.TicketViewerID)) {
+            if (!interaction.member.roles.cache.has(config.TicketViewerId)) {
                 const embed = new EmbedBuilder()
                     .setTitle('❌ Oops | Permission Denied')
                     .setDescription('You are not allowed to use this command!')
