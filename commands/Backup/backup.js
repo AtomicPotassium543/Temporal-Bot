@@ -281,6 +281,8 @@ module.exports = {
                     }
                 }
 
+                backupData.roles = backupData.roles.sort((a, b) => b.position - a.position)
+
                 // 1. CREATE ROLES FIRST
                 for (const role of backupData.roles) {
                     try {

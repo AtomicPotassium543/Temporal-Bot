@@ -22,6 +22,7 @@ module.exports = {
                 .setDescription('The level to set for the user')
                 .setRequired(true)
         ),
+    log: true,
     async execute(interaction) {
         await interaction.deferReply({ephemeral: true})
 
@@ -86,8 +87,19 @@ module.exports = {
 
         try {
             const LogChannel  = await interaction.client.channels.fetch(config.LogsChannelID);
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('User Level Updated')
+                .setDescription(`The level for ${userMention(user.id)} was set to **${level}**.`)
+                .addFields(
+                    { name: 'User ID', value: user.id },
+                    { name: 'Level', value: String(level) },
+                    { name: 'Set by', value: `${userMention(interaction.user.id)} (ID: ${interaction.user.id})` }
+                )
+                .setColor('Green')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
 
-            await LogChannel.send({ embeds: [Embed] });
+            await LogChannel.send({ embeds: [LogEmbed] });
         } catch (err) {
             console.error('Failed to send log message:', err);
         }

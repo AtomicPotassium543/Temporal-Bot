@@ -9,6 +9,7 @@ module.exports = {
             option
                 .setName("name")
                 .setDescription("Name to change it to.")
+                .setMaxLength(32)
                 .setRequired(true)
         )
         .addUserOption(option =>
@@ -17,22 +18,12 @@ module.exports = {
                 .setDescription("User to change the name of.")
                 .setRequired(false)
         ),
+    log: true,
     async execute(interaction) {
         await interaction.deferReply()
 
         const newName = interaction.options.getString('name');
         const Target = interaction.options.getUser('user') || interaction.user;
-
-        if (Target && !interaction.member.permissions.has('ManageNicknames')) {
-            const Embed = new EmbedBuilder()
-                .setTitle('❌ Oops | Permission Denied')
-                .setDescription("You don't have permission to change other users' nicknames.")
-                .setColor('Red')
-                .setFooter({ text: `Powered by ${interaction.client.user.username}` })
-                .setTimestamp();
-
-            return interaction.editReply({ embeds: [Embed], ephemeral: true });
-        }
 
         if (Target.higherRole.position >= interaction.member.roles.highest.position && interaction.user.id != Target.id) {
             const Embed = new EmbedBuilder()
@@ -49,7 +40,7 @@ module.exports = {
 
         const Embed = new EmbedBuilder()
             .setTitle('✅ Success | User Action')
-            .setDescription(`Your nickname has been set to: ${userMention(interaction.user.id)}`)
+            .setDescription(Target == interaction.user.id ? `Your nickname has been set to: ${newName}` : `${userMention(Target.id)} has been set to: ${newName}`)
             .setColor('Green')
             .setFooter({ text: `Powered by ${interaction.client.user.username}`})
             .setTimestamp();

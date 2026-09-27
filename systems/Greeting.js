@@ -14,7 +14,7 @@ module.exports = {
     initialize: async function (client) {
         const Configuration = mongoose.models.Configuration;
         
-        client.on(Events.GuildMemberAdd, async member => {
+        client.on(Events.GuildMemberAdd, async (member) => {
             const config = await Configuration.findOne({ GuildId: member.guild.id });
 
             if (!config) {
@@ -42,7 +42,7 @@ module.exports = {
             }
         })
 
-        client.on(Events.GuildMemberRemove, async member => {
+        client.on(Events.GuildMemberRemove, async (member) => {
             const config = await Configuration.findOne({ GuildId: member.guild.id });
         
             if (!config) {
@@ -69,6 +69,5 @@ module.exports = {
                 console.error('Failed to send member remove message to logs channel:', error);
             }
         })
-
     }
 }

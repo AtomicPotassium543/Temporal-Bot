@@ -26,8 +26,15 @@ module.exports = {
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id })
 
-        if (interaction.member.roles.cache.has(config.InfectedRoleID)) {
-            await interaction.editReply({ content: "You are not be normal in order to use this command!" })
+        if (interaction.member.roles.cache.has(config.InfectedRoleID)) {     
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Oops! | Infected user!')
+                .setDescription("You are infected! You can't use this command.")
+                .setColor('Red')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [embed] });
             return
         }
 

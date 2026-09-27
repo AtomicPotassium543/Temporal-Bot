@@ -62,9 +62,13 @@ module.exports = {
                 filter: i => i.user.id === interaction.user.id
             });
 
-            const gameId = selectInteraction.values[0];
+            const characterId = selectInteraction.values[0];
 
-            await Game.deleteOne({ _id: gameId, GuildId: interaction.guild.id });
+            const character = await Character.findOneAndDelete({ _id: characterId, GuildId: interaction.guild.id });
+
+            if (!character) {
+                throw new Error('Selected character was not found.');
+            }
 
             const successEmbed = new EmbedBuilder()
                 .setTitle('✅ Success | Character Removed')
@@ -72,6 +76,24 @@ module.exports = {
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
+
+            try {
+                const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+                const LogEmbed = new EmbedBuilder()
+                    .setTitle('Game Database Log | Character Removed')
+                    .setDescription(`The character **${character.name}** was removed.`)
+                    .addFields(
+                        { name: 'Character', value: `${character.name} (ID: ${character._id})` },
+                        { name: 'Removed by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                    )
+                    .setColor('Red')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+
+                await LogChannel.send({ embeds: [LogEmbed] });
+            } catch (err) {
+                console.error('Failed to send character removal message to logs channel:', err);
+            }
 
             await interaction.editReply({ content: "", embeds: [successEmbed], components: [], ephemeral: true });
         } catch (err) {

@@ -65,6 +65,21 @@ module.exports = {
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
 
+            try {
+                const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+                const LogEmbed = new EmbedBuilder()
+                    .setTitle('Game Database Log | Character Added')
+                    .setDescription(`The character **${characterName}** was added to the database.`)
+                    .addFields({ name: 'Added by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` })
+                    .setColor('Blurple')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+
+                await LogChannel.send({ embeds: [LogEmbed] });
+            } catch (err) {
+                console.error('Failed to send character setup message to logs channel:', err);
+            }
+
             await modalInteraction.reply({ content: "", embeds: [Embed], components: [], ephemeral: true });
         } catch (err) {
             console.error(err);

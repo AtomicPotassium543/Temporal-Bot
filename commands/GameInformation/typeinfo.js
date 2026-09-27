@@ -102,6 +102,25 @@ module.exports = {
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
 
+            try {
+                const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+                const LogEmbed = new EmbedBuilder()
+                    .setTitle('Game Information Updated')
+                    .setDescription(game_info)
+                    .addFields(
+                        { name: 'Game', value: `${gameDoc.name} (ID: ${gameDoc._id})` },
+                        { name: 'Info', value: game_info},
+                        { name: 'Updated by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                    )
+                    .setColor('Green')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+
+                await LogChannel.send({ embeds: [LogEmbed] });
+            } catch (err) {
+                console.error('Failed to send game information update to logs channel:', err);
+            }
+
             await modalSubmit.reply({ content: "", embeds: [successEmbed], ephemeral: true });
         } catch (err) {
             console.error(err);

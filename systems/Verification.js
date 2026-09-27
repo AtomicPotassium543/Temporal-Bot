@@ -66,7 +66,7 @@ module.exports = {
                     }
                     
                     try {
-                        await member.edit({ nick: robloxData.data.name });
+                        await member.edit({ nick: `${member.displayName} ${robloxData.data.name}` >= 32 ? `${member.displayName} ${robloxData.data.name}`.slice(0, 29) + "..." : `${member.displayName} ${robloxData.data.name}` });
                     } catch (error) {
                         console.log(error)
                     }
@@ -175,7 +175,7 @@ module.exports = {
                     const Message = await interaction.user.send({ embeds: [RobloxEmbed], components: [Row] });
 
                     try {
-                        const ButtonInteraction = await Message.awaitMessageComponent({ filter: i => i.customId === 'submit_username' && i.user.id === interaction.user.id, time: 60000 })
+                        const ButtonInteraction = await Message.awaitMessageComponent({ filter: i => i.customId === 'submit_username' && i.user.id === interaction.user.id, time: 180000 })
 
                         const Modal = new ModalBuilder()
                             .setCustomId('username_modal')
@@ -243,7 +243,7 @@ module.exports = {
 
                                 const verificationMessage = await modalResponse.reply({ embeds: [descriptionEmbed], components: [row], fetchReply: true });
 
-                                const descriptionSetInteraction = await verificationMessage.awaitMessageComponent({ filter: i => i.customId === 'verify_description_submit' && i.user.id === interaction.user.id, time: 60000 });
+                                const descriptionSetInteraction = await verificationMessage.awaitMessageComponent({ filter: i => i.customId === 'verify_description_submit' && i.user.id === interaction.user.id, time: 300000 });
 
                                 const robloxResponse = await axios.get(`https://users.roblox.com/v1/users/${userId}`);
 

@@ -56,6 +56,29 @@ module.exports = {
             .setFooter({ text: `Powered by ${interaction.client.user.username}`})
             .setTimestamp();
 
+        try {
+            const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+            const MessageFields = Array.from({ length: Math.ceil(message.length / 1024) }, (_, index) => ({
+                name: index === 0 ? 'Message' : 'Message (continued)',
+                value: message.slice(index * 1024, (index + 1) * 1024)
+            }));
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('Message executed | Moderation Action')
+                .setDescription(`Sent by <@${interaction.user.id}> (ID: ${interaction.user.id}) to <@${user.id}> (ID: ${user.id}).`)
+                .setFields(
+                    { name: "Moderator (Sender):", value: `${userMention(interaction.user.id)} (ID: ${interaction.user.id})`},
+                    { name: "Receiver:", value: `${userMention(user.id)} (ID: ${user.id})`}
+                )
+                .addFields(MessageFields)
+                .setColor('Blurple')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+
+            await LogChannel.send({ embeds: [LogEmbed] });
+        } catch (error) {
+            console.error('Failed to send direct message log:', error);
+        }
+
         await interaction.editReply({ embeds: [Embed] });
     }
 }

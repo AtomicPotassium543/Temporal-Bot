@@ -59,6 +59,20 @@ module.exports = {
             .setFooter({ text: `Powered by ${interaction.client.user.username}`})
             .setTimestamp();
 
+        try {
+            const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('Channel Unlocked | Moderation Action')
+                .setDescription(`${channel} was unlocked by <@${interaction.user.id}>.`)
+                .setColor('Green')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+
+            await LogChannel.send({ embeds: [LogEmbed] });
+        } catch (error) {
+            console.error('Failed to send unlock log:', error);
+        }
+
         await channel.send({ embeds: [Embed] });
 
         await interaction.editReply({ embeds: [Embed] });

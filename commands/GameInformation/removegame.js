@@ -64,14 +64,36 @@ module.exports = {
 
             const gameId = selectInteraction.values[0];
 
-            await Game.deleteOne({ _id: gameId, GuildId: interaction.guild.id });
+            const game = await Game.findOneAndDelete({ _id: gameId, GuildId: interaction.guild.id });
+
+            if (!game) {
+                throw new Error('Selected game was not found.');
+            }
 
             const successEmbed = new EmbedBuilder()
                 .setTitle('✅ Success | Game Removed')
-                .setDescription(`Game removed successfully.`)
+                .setDescription(`Game **${game.name}** removed successfully.`)
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
+
+            try {
+                const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+                const LogEmbed = new EmbedBuilder()
+                    .setTitle('Game Database Log | Game Removed')
+                    .setDescription(`The game **${game.name}** was removed.`)
+                    .addFields(
+                        { name: 'Game', value: `${game.name} (ID: ${game._id})` },
+                        { name: 'Removed by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                    )
+                    .setColor('Green')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+
+                await LogChannel.send({ embeds: [LogEmbed] });
+            } catch (err) {
+                console.error('Failed to send game removal message to logs channel:', err);
+            }
 
             await interaction.editReply({ content: "", embeds: [successEmbed], components: [], ephemeral: true });
         } catch (err) {

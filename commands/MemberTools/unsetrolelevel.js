@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, ActionRowBuilder, ComponentType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, roleMention, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder, ActionRowBuilder, ComponentType } = require('discord.js');
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -11,6 +11,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('removerolelevel')
         .setDescription('Unlink a role to a level.'),
+    log: true,
     async execute(interaction) {
 
         const config = await Configuration.findOne({ GuildId: interaction.guild.id });
@@ -65,14 +66,39 @@ module.exports = {
 
             const roleId = selectInteraction.values[0];
 
-            await RoleLevel.deleteOne({ _id: roleId });
+            const roleLevel = await RoleLevel.findOneAndDelete({ _id: roleId, GuildId: interaction.guild.id });
+
+            if (!roleLevel) {
+                throw new Error('Selected role level was not found.');
+            }
+
+            const role = await interaction.guild.roles.fetch(roleLevel.roleId).catch(() => null);
 
             const successEmbed = new EmbedBuilder()
                 .setTitle('✅ Success | Role Unlinked')
-                .setDescription("The role has been unlinked!")
+                .setDescription(`The role ${role ? role.name : roleLevel.roleId} has been unlinked from level ${roleLevel.level}.`)
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
+
+            try {
+                const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+                const LogEmbed = new EmbedBuilder()
+                    .setTitle('Role Level Unlinked')
+                    .setDescription(`The role ${role ? roleMention(role.id) : roleLevel.roleId} was unlinked from level **${roleLevel.level}**.`)
+                    .addFields(
+                        { name: 'Role ID', value: roleLevel.roleId },
+                        { name: 'Level', value: String(roleLevel.level) },
+                        { name: 'Unlinked by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                    )
+                    .setColor('Red')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+
+                await LogChannel.send({ embeds: [LogEmbed] });
+            } catch (err) {
+                console.error('Failed to send role unlink message to logs channel:', err);
+            }
 
             await interaction.editReply({ content: "", embeds: [successEmbed], components: [], ephemeral: true });
         } catch (err) {

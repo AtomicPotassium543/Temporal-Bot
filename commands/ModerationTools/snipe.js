@@ -71,6 +71,26 @@ module.exports = {
             .setFooter({ text: `Powered by ${interaction.client.user.username}`})
             .setTimestamp();
 
+        try {
+            const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('Cached Message Viewed | Moderation Action')
+                .setDescription(`<@${interaction.user.id}> viewed the cached message for <@${user.id}>.`)
+                .addFields(
+                    { name: 'Target user ID', value: user.id },
+                    { name: 'Message', value: lastMessage.content.slice(0, 1024) || 'No text content.' },
+                    { name: 'Attachments', value: lastMessage.attachments.size ? lastMessage.attachments.map(attachment => attachment.url).join('\n').slice(0, 1024) : 'None' },
+                    { name: 'Viewed by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                )
+                .setColor('Blue')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+
+            await LogChannel.send({ embeds: [LogEmbed] });
+        } catch (error) {
+            console.error('Failed to send cached message view log:', error);
+        }
+
         await interaction.editReply({ embeds: [embed] });
     }
 }

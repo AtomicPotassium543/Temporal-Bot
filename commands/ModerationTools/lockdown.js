@@ -38,14 +38,25 @@ module.exports = {
 
         const Embed = new EmbedBuilder()
             .setTitle('✅ Success | Moderation Action')
-            .setDescription(`${channelMention(interaction.channel.id)} has been locked down!`)
+            .setDescription(`${channelMention(channel.id)} has been locked down!`)
             .setColor('Green')
             .setFooter({ text: `Powered by ${interaction.client.user.username}`})
             .setTimestamp();
 
         try {
-            const LogChannel  = await interaction.client.channels.fetch(config.LogsChannelID);
-            await LogChannel.send({ embeds: [Embed] });
+            const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('Channel Locked Down | Moderation Action')
+                .setDescription(`${channelMention(channel.id)} was locked down by <@${interaction.user.id}>.`)
+                .addFields(
+                    { name: 'Channel ID', value: channel.id },
+                    { name: 'Moderator', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                )
+                .setColor('Blue')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+
+            await LogChannel.send({ embeds: [LogEmbed] });
         } catch (error) {
             console.error('Failed to send message to logs channel:', error);
         }

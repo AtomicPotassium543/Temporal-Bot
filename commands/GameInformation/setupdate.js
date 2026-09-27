@@ -97,6 +97,25 @@ module.exports = {
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
 
+            try {
+                const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+                const LogEmbed = new EmbedBuilder()
+                    .setTitle('Game Database Log | Release Date Updated')
+                    .setDescription(`The release date for **${gameDoc.name}** was set to **${game_release}**.`)
+                    .addFields(
+                        { name: 'Game', value: `${gameDoc.name} (ID: ${gameDoc._id})` },
+                        { name: 'Release date', value: game_release },
+                        { name: 'Updated by', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                    )
+                    .setColor('Green')
+                    .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                    .setTimestamp();
+
+                await LogChannel.send({ embeds: [LogEmbed] });
+            } catch (err) {
+                console.error('Failed to send release date update to logs channel:', err);
+            }
+
             await interaction.editReply({ content: "", embeds: [successEmbed], components: [], ephemeral: true });
         } catch (err) {
             console.error(err);

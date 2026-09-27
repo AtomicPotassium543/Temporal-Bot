@@ -99,8 +99,20 @@ module.exports = {
 
         try {
             const LogChannel  = await interaction.client.channels.fetch(config.LogsChannelID);
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('Role Level Updated | Member Update')
+                .setDescription(`The level for ${roleMention(role.id)} was set to **${level}**.`)
+                .addFields(
+                    { name: 'Role ID', value: role.id },
+                    { name: 'Level', value: String(level) },
+                    { name: 'Members affected', value: String(membersWithRole.size) },
+                    { name: 'Set by', value: `${userMention(interaction.user.id)} (ID: ${interaction.user.id})` }
+                )
+                .setColor('Green')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
 
-            await LogChannel.send({ embeds: [Embed] });
+            await LogChannel.send({ embeds: [LogEmbed] });
         } catch (err) {
             console.error('Failed to send log message:', err);
         }

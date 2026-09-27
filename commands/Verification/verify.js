@@ -105,7 +105,7 @@ module.exports = {
                         .setStyle(ButtonStyle.Secondary)
                 );
 
-            const Message = await VerificationChannel.send({ embeds: [Embed], components: [row] });
+            await VerificationChannel.send({ embeds: [Embed], components: [row] });
 
             await interaction.editReply({ content: `Verification process has been initialized in ${(VerificationChannel)}.` });
         }

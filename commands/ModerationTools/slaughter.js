@@ -85,11 +85,30 @@ module.exports = {
         }
 
         const Embed = new EmbedBuilder()
-            .setTitle('✅ Success! | Time out')
-            .setDescription(`User ${user.tag} has been timed out for ${duration} minutes.`)
+            .setTitle('✅ Success! | Target Slaughtered ')
+            .setDescription(`User ${user.tag} has been slaughtered for ${duration} minutes.`)
             .setColor('Blue')
             .setFooter({ text: `Powered by ${interaction.client.user.username}`})
             .setTimestamp();
+
+        try {
+            const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+            const LogEmbed = new EmbedBuilder()
+                .setTitle('User Timed Out | Moderation Action')
+                .setDescription(`<@${user.id}> was timed out by <@${interaction.user.id}> for **${duration} minutes**.`)
+                .addFields(
+                    { name: 'User', value: user.id },
+                    { name: 'Duration', value: `${duration} minutes` },
+                    { name: 'Moderator', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+                )
+                .setColor('Blue')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+
+            await LogChannel.send({ embeds: [LogEmbed] });
+        } catch (error) {
+            console.error('Failed to send timeout log:', error);
+        }
 
         await interaction.editReply({ embeds: [Embed] });
     }

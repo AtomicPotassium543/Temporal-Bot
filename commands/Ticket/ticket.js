@@ -9,6 +9,32 @@ const Configuration = mongoose.models.Configuration;
 const TicketConfiguration = mongoose.models.TicketConfiguration;
 const Ticket = mongoose.models.Ticket;
 
+async function sendTicketLog(interaction, title, description, fields = []) {
+    try {
+        const config = await Configuration.findOne({ GuildId: interaction.guild.id });
+
+        if (!config?.LogsChannelID) {
+            return;
+        }
+
+        const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
+        const LogEmbed = new EmbedBuilder()
+            .setTitle(`${title} | Moderation Action`)
+            .setDescription(description)
+            .addFields(
+                ...fields,
+                { name: 'Moderator', value: `<@${interaction.user.id}> (ID: ${interaction.user.id})` }
+            )
+            .setColor('Blurple')
+            .setFooter({ text: `Powered by ${interaction.client.user.username}` })
+            .setTimestamp();
+
+        await LogChannel.send({ embeds: [LogEmbed] });
+    } catch (error) {
+        console.error('Failed to send ticket log:', error);
+    }
+}
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('ticket')
@@ -153,6 +179,19 @@ module.exports = {
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                 .setTimestamp();
+
+            await sendTicketLog(
+                interaction,
+                'Ticket Prompt Created',
+                `Ticket setup **${ticketConfig.name}** was created.`,
+                [
+                    { name: 'Name', value: ticketConfig.name },
+                    { name: 'Reason', value: ticketConfig.reason },
+                    { name: 'Prompt channel', value: `<#${ticketConfig.TicketChannelId}> (ID: ${ticketConfig.TicketChannelId})` },
+                    { name: 'Ticket category', value: `<#${ticketConfig.TicketCategoryId}> (ID: ${ticketConfig.TicketCategoryId})` },
+                    { name: 'Prompt message ID', value: message.id }
+                ]
+            );
             
             await interaction.editReply({ embeds: [embed] });
         }
@@ -183,19 +222,19 @@ module.exports = {
             const TicketConfigs = await TicketConfiguration.find({ GuildId: interaction.guild.id });
 
             const TicketSelect = new StringSelectMenuBuilder()
-                .setCustomId('unwarn_select')
+                .setCustomId('prompt_select')
                 .setPlaceholder('Select a setup to destroy.')
                 .addOptions(
                     TicketConfigs.map(TicketConfig => ({
                         label: `Ticket: #${TicketConfig.name}`,
-                        description: TicketConfig.reason.slice(0, 50) + (TicketConfig.reason.length > 50 ? '...' : ''),
+                        description: TicketConfig.reason ? TicketConfig.reason.slice(0, 50) + (TicketConfig.reason.length > 50 ? '...' : '') : null,
                         value: TicketConfig._id.toString()
                     }))
                 );
         
             const TicketRow = new ActionRowBuilder().addComponents(TicketSelect);
 
-            const filter = i => i.customId === 'unwarn_select' && i.user.id === interaction.user.id;
+            const filter = i => i.customId === 'prompt_select' && i.user.id === interaction.user.id;
 
             const message = await interaction.editReply({ content: 'Select a ticket setup to remove:', components: [TicketRow] });
 
@@ -234,6 +273,20 @@ module.exports = {
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                 .setTimestamp();
+
+            await sendTicketLog(
+                interaction,
+                'Ticket Configuration Removed',
+                `Ticket setup **${Config.name}** and its prompt were removed.`,
+                [
+                    { name: 'Name', value: Config.name },
+                    { name: 'Reason', value: Config.reason || 'No reason provided' },
+                    { name: 'Prompt channel ID', value: Config.TicketChannelId },
+                    { name: 'Ticket category ID', value: Config.TicketCategoryId },
+                    { name: 'Prompt message ID', value: Config.TicketMessageId || 'Not available' }
+                ]
+            );
+
             await interaction.editReply({ embeds: [embed], components: [] });
         }
 
@@ -300,6 +353,17 @@ module.exports = {
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                 .setTimestamp();
+
+            await sendTicketLog(
+                interaction,
+                'User Added to Ticket',
+                `${userMention(user.id)} was added to <#${interaction.channel.id}>.`,
+                [
+                    { name: 'User ID', value: user.id },
+                    { name: 'Ticket channel ID', value: interaction.channel.id }
+                ]
+            );
+
             await interaction.editReply({ embeds: [embed] });
         }
 
@@ -366,6 +430,17 @@ module.exports = {
                 .setColor('Green')
                 .setFooter({ text: `Powered by ${interaction.client.user.username}` })
                 .setTimestamp();
+
+            await sendTicketLog(
+                interaction,
+                'User Removed from Ticket',
+                `${userMention(user.id)} was removed from <#${interaction.channel.id}>.`,
+                [
+                    { name: 'User ID', value: user.id },
+                    { name: 'Ticket channel ID', value: interaction.channel.id }
+                ]
+            );
+
             await interaction.editReply({ embeds: [embed] });
         }
 

@@ -135,7 +135,8 @@ module.exports = {
                             .setTitle("Ticket Embed")
                             .setDescription("Thank you for creating a ticket! Please wait until a moderator contacts you, and in the mean while, please give us the details for your issue.")
                             .setColor("Blurple")
-                            .addFields({ name: "Reason", value: `\`\`\`${reason}\`\`\``, inline: true })
+                            .addFields({ name: "Creator", value: `${userMention(modalInteraction.user.id)} (ID: ${modalInteraction.user.id})` })
+                            .addFields({ name: "Reason", value: `\`\`\`${reason}\`\`\`` })
                             .setFooter({ text: `Powered by ${interaction.client.user.username}.` })
                             .setTimestamp()
 
