@@ -239,6 +239,8 @@ module.exports = {
             const message = await interaction.editReply({ content: 'Select a ticket setup to remove:', components: [TicketRow] });
 
             const selectInteraction = await message.awaitMessageComponent({ filter, componentType: ComponentType.StringSelect, time: 300000 });
+            
+            await selectInteraction.deferUpdate()
 
             const selectedWarningId = selectInteraction.values[0];
 
@@ -276,7 +278,7 @@ module.exports = {
 
             await sendTicketLog(
                 interaction,
-                'Ticket Configuration Removed',
+                'Ticket Configuration Removed | Moderator Actions',
                 `Ticket setup **${Config.name}** and its prompt were removed.`,
                 [
                     { name: 'Name', value: Config.name },

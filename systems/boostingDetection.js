@@ -34,8 +34,6 @@ module.exports = {
                 } catch (err) {
                     console.log(err)
                 }
-
-                console.log(`${newMember.user.tag} has boosted the server.`);
             }
         });
     }
