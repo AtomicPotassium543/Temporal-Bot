@@ -25,7 +25,18 @@ module.exports = {
         const user = interaction.options.getUser('user');
         const member = await interaction.guild.members.fetch(user.id);
 
-        const reason = interaction.options.getString('reason');
+        const config = await Configuration.findOne({ GuildId: interaction.guild.id });
+
+        if (!interaction.member.roles.cache.has(config.StaffRoleID)) {
+            const embed = new EmbedBuilder()
+                .setTitle('❌ Oops | Permission Denied')
+                .setDescription('You are not allowed to use this command!')
+                .setColor('Red')
+                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
+                .setTimestamp();
+            await interaction.editReply({ embeds: [embed] })
+            return
+        }
 
         if (user.id === interaction.member.id) {
             const embed = new EmbedBuilder()
@@ -45,19 +56,6 @@ module.exports = {
                 .setFooter({ text: `Powered by ${interaction.client.user.username}`})
                 .setTimestamp();
             return interaction.editReply({ embeds: [embed] });
-        }
-
-        const config = await Configuration.findOne({ GuildId: interaction.guild.id });
-
-        if (!interaction.member.roles.cache.has(config.StaffRoleID)) {
-            const embed = new EmbedBuilder()
-                .setTitle('❌ Oops | Permission Denied')
-                .setDescription('You are not allowed to use this command!')
-                .setColor('Red')
-                .setFooter({ text: `Powered by ${interaction.client.user.username}`})
-                .setTimestamp();
-            await interaction.editReply({ embeds: [embed] })
-            return
         }
 
         const Warnings = await Warning.find({ GuildId: interaction.guild.id, userId: user.id });

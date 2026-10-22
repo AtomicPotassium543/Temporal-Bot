@@ -88,7 +88,7 @@ module.exports = {
         try {
             const LogChannel  = await interaction.client.channels.fetch(config.LogsChannelID);
             const LogEmbed = new EmbedBuilder()
-                .setTitle('User Level Updated')
+                .setTitle('User Level Updated | Member Update')
                 .setDescription(`The level for ${userMention(user.id)} was set to **${level}**.`)
                 .addFields(
                     { name: 'User ID', value: user.id },

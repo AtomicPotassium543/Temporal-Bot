@@ -84,7 +84,7 @@ module.exports = {
             try {
                 const LogChannel = await interaction.client.channels.fetch(config.LogsChannelID);
                 const LogEmbed = new EmbedBuilder()
-                    .setTitle('Role Level Unlinked')
+                    .setTitle('Role Level Unlinked | Member Update')
                     .setDescription(`The role ${role ? roleMention(role.id) : roleLevel.roleId} was unlinked from level **${roleLevel.level}**.`)
                     .addFields(
                         { name: 'Role ID', value: roleLevel.roleId },

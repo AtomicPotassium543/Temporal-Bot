@@ -1,6 +1,6 @@
 
 
-const { Client, ChannelType, TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder, Events, PermissionFlagsBits, AttachmentBuilder, EmbedBuilder, userMention, ButtonStyle, ButtonBuilder, roleMention, GuildChannel } = require('discord.js');
+const { Client, ChannelType, TextInputBuilder, TextInputStyle, ActionRowBuilder, ModalBuilder, Events, PermissionFlagsBits, AttachmentBuilder, EmbedBuilder, userMention, ButtonStyle, ButtonBuilder, roleMention, GuildChannel, channelMention } = require('discord.js');
 const mongoose = require('mongoose');
 
 module.exports = {
@@ -273,13 +273,11 @@ module.exports = {
                 console.log(error)
             )
 
-            const TicketName = channel.name
-
             const member = await channel.guild.members.fetch(TicketData.userId);
 
             const LogEmbed = new EmbedBuilder()
                 .setTitle("Ticket Closed!")
-                .setDescription(`Ticket ${channel.name} (${channel.id}) has been deleted!`)
+                .setDescription(`Ticket ${channelMention(channel.id)} (ID: ${channel.id}) has been deleted!`)
                 .addFields({ name: "Closed by", value: `N/A`, inline: true })
                 .addFields({ name: "Reason", value: "Channel Deletion.", inline: true })
                 .setColor("Blurple")

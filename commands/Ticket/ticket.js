@@ -258,11 +258,17 @@ module.exports = {
                 }
             }
 
+            const TicketCreationChannel = await interaction.guild.channels.fetch(Config.TicketMessage)
+
+            if (!TicketCreationChannel) {
+                await TicketCreationChannel.delete("Prompt destroying")
+            }
+
             const TicketChannels = (await interaction.guild.channels.fetch()).filter(channel => channel.parentId === Config.TicketCategoryId);
 
             TicketChannels.forEach(async channel => {
                 await Ticket.deleteOne({ ticketId: channel.id }).catch(() => { });
-                await channel.delete().catch(() => { });
+                await channel.delete("Prompt destroying").catch(() => { });
             });
 
             await TicketConfiguration.findOneAndDelete({ _id: selectedWarningId }).catch(() => { });
@@ -276,7 +282,7 @@ module.exports = {
 
             await sendTicketLog(
                 interaction,
-                'Ticket Configuration Removed',
+                'Ticket Configuration Removed | Moderation Tools',
                 `Ticket setup **${Config.name}** and its prompt were removed.`,
                 [
                     { name: 'Name', value: Config.name },
